@@ -22,12 +22,18 @@
     .sidebar-collapsed .lyear-layout-sidebar { width: 240px; }
 }
 
-/* Badge styles */
+/* Badge styles (Bootstrap 5 compatible) */
 .badge-success { background-color: #43e97b; color: #333; }
 .badge-danger { background-color: #fa709a; color: #fff; }
 .badge-warning { background-color: #fee140; color: #333; }
 .badge-info { background-color: #4facfe; color: #fff; }
 .badge-secondary { background-color: #95a5a6; color: #fff; }
+
+/* Bootstrap 5 close button fallback */
+.btn-close { background: none; border: none; font-size: 1.5rem; opacity: 0.5; line-height: 1; }
+.btn-close:hover { opacity: 0.75; }
+.close { background: none; border: none; font-size: 1.5rem; opacity: 0.5; cursor: pointer; }
+.close:hover { opacity: 0.75; }
 
 /* Utility */
 .text-muted { color: #999 !important; }
