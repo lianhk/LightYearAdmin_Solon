@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMS Scaffold 管理系统</title>
-    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="css/lyear.css" rel="stylesheet">
     <style>
@@ -242,9 +242,9 @@
             if (!menus) return;
 
             menus.forEach(function(menu) {
+                var icon = menu.icon || 'mdi mdi-circle';
                 if (menu.children && menu.children.length > 0) {
-                    // 有子菜单 - 一级目录
-                    var icon = menu.icon || 'mdi mdi-circle';
+                    // 有子菜单 - 可展开目录
                     var html = '<div class="nav-item">';
                     html += '<a class="nav-link has-submenu" data-id="' + menu.menuId + '">';
                     html += '<span class="' + icon + '"></span>';
@@ -261,6 +261,13 @@
                     });
                     html += '</div></div>';
                     $nav.append(html);
+                } else {
+                    // 叶子菜单 - 直接可点击
+                    var leafHtml = '<a class="nav-link" onclick="loadPage(\'' + menu.path + '\', \'' + menu.menuName + '\')">';
+                    leafHtml += '<span class="' + icon + '"></span>';
+                    leafHtml += '<span>' + menu.menuName + '</span>';
+                    leafHtml += '</a>';
+                    $nav.append(leafHtml);
                 }
             });
 

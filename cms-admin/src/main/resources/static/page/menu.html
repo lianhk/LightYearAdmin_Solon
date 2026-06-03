@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"><title>菜单管理</title>
-<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
@@ -28,7 +28,7 @@
 </div>
 
 <div class="modal fade" id="menuModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增菜单</h5><button class="close" data-bs-dismiss="modal">&times;</button></div>
+<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增菜单</h5><button class="close" data-dismiss="modal">&times;</button></div>
 <div class="modal-body">
   <input type="hidden" id="editMenuId"><input type="hidden" id="editParentId">
   <div class="form-group"><label>上级菜单</label><input class="form-control" id="parentName" readonly></div>
@@ -40,11 +40,11 @@
   <div class="form-group"><label>权限标识</label><input class="form-control" id="editPerms" placeholder="如: system:user:list"></div>
   <div class="form-group"><label>状态</label><select class="form-control" id="editStatus"><option value="0">正常</option><option value="1">停用</option></select></div>
 </div>
-<div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveMenu()">保存</button></div>
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveMenu()">保存</button></div>
 </div></div></div>
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
 <script>
 var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
 function H(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}}
