@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>服务监控</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.card{border:none;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.card-header{border-radius:6px 6px 0 0!important;padding:12px 18px;border-bottom:1px solid #f0f0f0;font-weight:700;font-size:14px;color:#333;background:#fff}
+.card-body{padding:18px;background:#fff;border-radius:0 0 6px 6px}
+.info-row{display:flex;margin-bottom:8px;font-size:13px}
+.info-label{width:100px;color:#888;flex-shrink:0}.info-value{color:#333}
+.progress{height:16px;border-radius:8px;background:#e9ecef}.progress-bar{border-radius:8px;line-height:16px;font-size:11px}
+.metric-value{font-size:18px;font-weight:700}.metric-unit{font-size:12px;color:#888}
+.text-success{color:#43e97b}.text-warning{color:#fee140}.text-danger{color:#fa709a}
+.bg-success{background:#43e97b!important}.bg-warning{background:#fee140!important}.bg-danger{background:#fa709a!important}
+.row{margin-left:-8px;margin-right:-8px}.row>[class*=col-]{padding-left:8px;padding-right:8px}
+</style>
+</head>
+<body>
+<div class="container-fluid px-0">
+
+<div class="row" id="infoCards">
+  <div class="col-md-4" id="cpuCard"></div>
+  <div class="col-md-4" id="memCard"></div>
+  <div class="col-md-4" id="jvmCard"></div>
+</div>
+
+<div class="row" id="serverInfo"></div>
+
+<div class="row" id="diskInfo"></div>
+
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
+$(function(){loadData()});
+
+function loadData(){
+  $.ajax({url:'/monitor/server',type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    if(res.code!==200&&res.code!==0){alert(res.msg||'请求失败');return}
+    var d=res.data;
+    renderCPU(d.cpu);
+    renderMem(d.mem);
+    renderJVM(d.jvm);
+    renderSys(d.sys);
+    renderDisk(d.sysFiles);
+  },error:function(xhr){alert('请求失败: '+(xhr.responseJSON?xhr.responseJSON.msg:xhr.statusText))}});
+}
+
+function barClass(usage){if(usage<60)return'bg-success';if(usage<85)return'bg-warning';return'bg-danger';}
+
+function renderCPU(cpu){
+  var h='<div class="card"><div class="card-header"><span class="mdi mdi-chip"></span> CPU</div><div class="card-body">';
+  h+='<div class="info-row"><span class="info-label">核心数</span><span class="info-value metric-value">'+(cpu.cpuNum||0)+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">使用率</span><span class="info-value metric-value">'+(cpu.used||0)+'%</span></div>';
+  h+='<div class="progress"><div class="progress-bar '+barClass(cpu.used||0)+'" style="width:'+(cpu.used||0)+'%">'+(cpu.used||0)+'%</div></div>';
+  h+='<div class="info-row mt-2"><span class="info-label">空闲</span><span class="info-value">'+(cpu.free||0)+'%</span></div>';
+  h+='</div></div>';
+  $('#cpuCard').html(h);
+}
+
+function renderMem(mem){
+  var h='<div class="card"><div class="card-header"><span class="mdi mdi-memory"></span> 内存</div><div class="card-body">';
+  h+='<div class="info-row"><span class="info-label">总内存</span><span class="info-value metric-value">'+formatBytes(mem.total)+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">已用</span><span class="info-value">'+formatBytes(mem.used)+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">剩余</span><span class="info-value">'+formatBytes(mem.free)+'</span></div>';
+  h+='<div class="mt-2"><div class="progress"><div class="progress-bar '+barClass(mem.usage||0)+'" style="width:'+(mem.usage||0)+'%">'+(mem.usage||0)+'%</div></div></div>';
+  h+='</div></div>';
+  $('#memCard').html(h);
+}
+
+function renderJVM(jvm){
+  var h='<div class="card"><div class="card-header"><span class="mdi mdi-coffee"></span> JVM</div><div class="card-body">';
+  h+='<div class="info-row"><span class="info-label">版本</span><span class="info-value">'+(jvm.version||'')+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">运行时间</span><span class="info-value">'+(jvm.runTime||'')+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">堆最大</span><span class="info-value">'+formatBytes(jvm.max)+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">堆已用</span><span class="info-value">'+formatBytes(jvm.used)+'</span></div>';
+  h+='<div class="info-row"><span class="info-label">堆剩余</span><span class="info-value">'+formatBytes(jvm.free)+'</span></div>';
+  h+='<div class="mt-2"><div class="progress"><div class="progress-bar '+barClass(jvm.usage||0)+'" style="width:'+(jvm.usage||0)+'%">'+(jvm.usage||0)+'%</div></div></div>';
+  h+='</div></div>';
+  $('#jvmCard').html(h);
+}
+
+function renderSys(sys){
+  var h='<div class="col-md-12"><div class="card"><div class="card-header"><span class="mdi mdi-monitor"></span> 服务器信息</div><div class="card-body"><div class="row">';
+  h+='<div class="col-md-4"><div class="info-row"><span class="info-label">主机名</span><span class="info-value">'+(sys.computerName||'')+'</span></div></div>';
+  h+='<div class="col-md-4"><div class="info-row"><span class="info-label">操作系统</span><span class="info-value">'+(sys.osName||'')+'</span></div></div>';
+  h+='<div class="col-md-4"><div class="info-row"><span class="info-label">架构</span><span class="info-value">'+(sys.osArch||'')+'</span></div></div>';
+  h+='<div class="col-md-12"><div class="info-row"><span class="info-label">工作目录</span><span class="info-value">'+(sys.userDir||'')+'</span></div></div>';
+  h+='</div></div></div></div>';
+  $('#serverInfo').html(h);
+}
+
+function renderDisk(files){
+  if(!files||!files.length){$('#diskInfo').html('');return;}
+  var h='<div class="col-md-12"><div class="card"><div class="card-header"><span class="mdi mdi-harddisk"></span> 磁盘信息</div><div class="card-body"><div class="row">';
+  files.forEach(function(f){
+    h+='<div class="col-md-6 mb-3"><div style="border:1px solid #f0f0f0;border-radius:4px;padding:12px">';
+    h+='<strong><span class="mdi mdi-folder"></span> '+(f.dirName||'')+'</strong>';
+    h+='<div class="row mt-2"><div class="col-4"><small class="text-muted">总大小</small><br><span>'+formatBytes(f.total)+'</span></div>';
+    h+='<div class="col-4"><small class="text-muted">已用</small><br><span>'+formatBytes(f.used)+'</span></div>';
+    h+='<div class="col-4"><small class="text-muted">剩余</small><br><span>'+formatBytes(f.free)+'</span></div></div>';
+    h+='<div class="progress mt-2"><div class="progress-bar '+barClass(f.usage||0)+'" style="width:'+(f.usage||0)+'%">'+(f.usage||0)+'%</div></div>';
+    h+='</div></div>';
+  });
+  h+='</div></div></div></div>';
+  $('#diskInfo').html(h);
+}
+
+function formatBytes(bytes){
+  if(bytes==null||bytes==='')return '0 B';
+  var b=parseFloat(bytes);
+  if(isNaN(b))return bytes+'';
+  if(b===0)return '0 B';
+  var k=1024, sizes=['B','KB','MB','GB','TB'];
+  var i=Math.floor(Math.log(b)/Math.log(k));
+  if(i>=sizes.length)i=sizes.length-1;
+  return (b/Math.pow(k,i)).toFixed(2)+' '+sizes[i];
+}
+</script>
+</body>
+</html>

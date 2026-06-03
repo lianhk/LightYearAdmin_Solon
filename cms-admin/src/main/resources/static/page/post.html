@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>岗位管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px;padding:7px 16px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-warning{background:#fee140;border-color:#fee140;color:#333}.btn-danger{background:#fa709a;border-color:#fa709a;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.form-control{height:38px;border-radius:4px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="section">
+  <div class="section-header"><strong>岗位管理</strong>
+    <div><button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button></div>
+  </div>
+  <div class="section-body">
+    <div class="form-inline">
+      <input class="form-control" id="searchPostCode" placeholder="岗位编码" style="width:150px">
+      <input class="form-control" id="searchPostName" placeholder="岗位名称" style="width:150px">
+      <select class="form-control" id="searchStatus" style="width:120px">
+        <option value="">状态</option>
+        <option value="0">正常</option>
+        <option value="1">停用</option>
+      </select>
+      <button class="btn btn-primary" onclick="search()"><span class="mdi mdi-magnify"></span> 搜索</button>
+      <button class="btn btn-outline-secondary" onclick="resetSearch()"><span class="mdi mdi-refresh"></span></button>
+    </div>
+    <hr>
+    <table class="table table-hover">
+      <thead><tr>
+        <th>岗位编号</th><th>岗位编码</th><th>岗位名称</th><th>显示顺序</th><th>状态</th><th>创建时间</th><th width="120">操作</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="postModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增岗位</h5><button class="close" data-dismiss="modal">&times;</button></div>
+<div class="modal-body">
+  <input type="hidden" id="editPostId">
+  <div class="form-group"><label>岗位编码</label><input class="form-control" id="editPostCode"></div>
+  <div class="form-group"><label>岗位名称</label><input class="form-control" id="editPostName"></div>
+  <div class="form-group"><label>显示顺序</label><input class="form-control" type="number" id="editPostSort" value="0"></div>
+  <div class="form-group"><label>状态</label><select class="form-control" id="editStatus"><option value="0">正常</option><option value="1">停用</option></select></div>
+  <div class="form-group"><label>备注</label><textarea class="form-control" id="editRemark" rows="3"></textarea></div>
+</div>
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="savePost()">保存</button></div>
+</div></div></div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
+function H(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}}
+$(function(){loadData()});
+
+function loadData(){
+  var pc=$('#searchPostCode').val(), pn=$('#searchPostName').val(), st=$('#searchStatus').val();
+  $.ajax({url:'/system/post/list',type:'GET',headers:{'Authorization':'Bearer '+token},
+    data:{postCode:pc,postName:pn,status:st},success:function(res){
+    if(res.code!==200&&res.code!==0)return;
+    var rows=res.data||res.rows||[], t='';
+    rows.forEach(function(d){
+      t+='<tr><td>'+d.postId+'</td><td>'+(d.postCode||'')+'</td><td>'+(d.postName||'')+'</td>';
+      t+='<td>'+(d.postSort!=null?d.postSort:'')+'</td>';
+      t+='<td><span class="badge '+(d.status=='0'?'badge-success':'badge-danger')+'">'+(d.status=='0'?'正常':'停用')+'</span></td>';
+      t+='<td>'+(d.createTime||'')+'</td>';
+      t+='<td><button class="btn btn-sm btn-warning" onclick="openEdit('+d.postId+')"><span class="mdi mdi-pencil"></span></button> ';
+      t+='<button class="btn btn-sm btn-danger" onclick="deletePost('+d.postId+')"><span class="mdi mdi-delete"></span></button></td></tr>';
+    });
+    $('table tbody').html(t || '<tr><td colspan="7" class="text-center">暂无数据</td></tr>');
+  },error:function(xhr){alert('请求失败: '+(xhr.responseJSON?xhr.responseJSON.msg:xhr.statusText))}});
+}
+
+function search(){loadData();}
+function resetSearch(){$('#searchPostCode,#searchPostName').val('');$('#searchStatus').val('');loadData();}
+
+function openAdd(){
+  $('#editPostId').val('');$('#editPostCode,#editPostName,#editRemark').val('');
+  $('#editPostSort').val('0');$('#editStatus').val('0');
+  $('#modalTitle').text('新增岗位');$('#postModal').modal('show');
+}
+
+function openEdit(id){
+  $.ajax({url:'/system/post/'+id,type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    if(res.code!==200&&res.code!==0){alert(res.msg);return}
+    var d=res.data;
+    $('#editPostId').val(d.postId);$('#editPostCode').val(d.postCode||'');
+    $('#editPostName').val(d.postName||'');$('#editPostSort').val(d.postSort!=null?d.postSort:0);
+    $('#editStatus').val(d.status);$('#editRemark').val(d.remark||'');
+    $('#modalTitle').text('编辑岗位');$('#postModal').modal('show');
+  }});
+}
+
+function savePost(){
+  var id=$('#editPostId').val();
+  var d={
+    postId:id?parseInt(id):null,
+    postCode:$('#editPostCode').val(),
+    postName:$('#editPostName').val(),
+    postSort:parseInt($('#editPostSort').val())||0,
+    status:$('#editStatus').val(),
+    remark:$('#editRemark').val()
+  };
+  $.ajax({url:'/system/post',type:id?'PUT':'POST',contentType:'application/json',headers:H(),data:JSON.stringify(d),
+    success:function(res){if(res.code===200||res.code===0){$('#postModal').modal('hide');loadData()}else alert(res.msg)}});
+}
+
+function deletePost(id){if(!confirm('确认删除该岗位？'))return;
+  $.ajax({url:'/system/post/'+id,type:'DELETE',headers:{'Authorization':'Bearer '+token},
+    success:function(res){if(res.code===200||res.code===0)loadData();else alert(res.msg)}});
+}
+</script>
+</body>
+</html>

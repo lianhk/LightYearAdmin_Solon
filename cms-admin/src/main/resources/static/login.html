@@ -6,6 +6,7 @@
     <title>CMS Scaffold - 登录</title>
     <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -52,6 +53,16 @@
             color: #aaa;
             font-size: 18px;
         }
+        .captcha-group { display: flex; gap: 10px; }
+        .captcha-group .captcha-input { flex: 1; }
+        .captcha-img {
+            height: 44px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        .captcha-img:hover { border-color: #4facfe; }
         .btn-login {
             width: 100%;
             height: 44px;
@@ -89,6 +100,17 @@
                     <span class="mdi mdi-lock"></span>
                     <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" value="admin123" required>
                 </div>
+                <div class="form-group">
+                    <label>验证码</label>
+                    <div class="captcha-group">
+                        <div class="captcha-input">
+                            <span class="mdi mdi-security"></span>
+                            <input type="text" class="form-control" id="code" name="code" placeholder="请输入验证码" required>
+                        </div>
+                        <img id="captchaImg" class="captcha-img" src="" alt="验证码" title="点击刷新验证码">
+                    </div>
+                </div>
+                <input type="hidden" id="uuid" name="uuid" value="">
                 <div class="error-msg" id="errorMsg"></div>
                 <button type="submit" class="btn-login">登 录</button>
             </form>
@@ -99,19 +121,33 @@
     <script src="/static/lib/jquery/jquery.min.js"></script>
     <script>
         $(function() {
+            // 初始加载验证码
+            refreshCaptcha();
+
+            // 点击验证码图片刷新
+            $('#captchaImg').on('click', function() {
+                refreshCaptcha();
+            });
+
             $('#loginForm').on('submit', function(e) {
                 e.preventDefault();
                 var username = $('#username').val();
                 var password = $('#password').val();
+                var code = $('#code').val();
+                var uuid = $('#uuid').val();
                 if (!username || !password) {
                     $('#errorMsg').text('用户名和密码不能为空').show();
+                    return;
+                }
+                if (!code) {
+                    $('#errorMsg').text('请输入验证码').show();
                     return;
                 }
                 $.ajax({
                     url: '/login',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ username: username, password: password }),
+                    data: JSON.stringify({ username: username, password: password, code: code, uuid: uuid }),
                     success: function(res) {
                         if (res.code === 200) {
                             localStorage.setItem('token', res.data.token);
@@ -119,16 +155,35 @@
                             window.location.href = '/static/index.html';
                         } else {
                             $('#errorMsg').text(res.msg).show();
+                            refreshCaptcha();
                         }
                     },
                     error: function(xhr) {
                         var msg = '登录失败，请重试';
                         try { msg = JSON.parse(xhr.responseText).msg; } catch(e) {}
                         $('#errorMsg').text(msg).show();
+                        refreshCaptcha();
                     }
                 });
             });
         });
+
+        // 获取验证码
+        function refreshCaptcha() {
+            $.ajax({
+                url: '/captcha',
+                type: 'GET',
+                success: function(res) {
+                    if (res.code === 200 && res.data) {
+                        $('#uuid').val(res.data.uuid);
+                        $('#captchaImg').attr('src', 'data:image/png;base64,' + res.data.img);
+                    }
+                },
+                error: function() {
+                    $('#errorMsg').text('获取验证码失败').show();
+                }
+            });
+        }
     </script>
 </body>
 </html>

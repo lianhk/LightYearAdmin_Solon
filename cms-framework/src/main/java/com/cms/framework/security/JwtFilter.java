@@ -68,6 +68,14 @@ public class JwtFilter implements Filter {
             return;
         }
 
+        // 检查黑名单（被强退的token）
+        if (com.cms.system.controller.SysOnlineController.isBlacklisted(token)) {
+            ctx.contentType("application/json;charset=UTF-8");
+            ctx.status(401);
+            ctx.output("{\"code\":401,\"msg\":\"您已被强制下线\"}");
+            return;
+        }
+
         // 将用户信息设置到上下文
         Long userId = SecurityUtils.getUserId(token);
         String username = SecurityUtils.getUsername(token);

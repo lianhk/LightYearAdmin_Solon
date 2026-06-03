@@ -3,6 +3,7 @@ package com.cms.system.controller;
 import cn.hutool.crypto.SecureUtil;
 import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
+import com.cms.common.utils.CaptchaUtils;
 import com.cms.common.utils.SecurityUtils;
 import com.cms.common.utils.StringUtils;
 import com.cms.framework.security.LoginBody;
@@ -35,46 +36,53 @@ public class SysLoginController extends BaseController {
     @Inject
     private SysLogininforMapper logininforMapper;
 
+    @Get
+    @Mapping("/captcha")
+    public AjaxResult captcha() {
+        CaptchaUtils.CaptchaResult result = CaptchaUtils.generate();
+        Map<String, String> data = new HashMap<>();
+        data.put("uuid", result.getUuid());
+        data.put("img", result.getBase64());
+        return success(data);
+    }
+
     @Post
     @Mapping("/login")
     public AjaxResult login(Context ctx, LoginBody loginBody) {
         String username = loginBody.getUsername();
         String password = loginBody.getPassword();
+        String code = loginBody.getCode();
+        String uuid = loginBody.getUuid();
 
-        // 记录登录日志
         SysLogininfor logininfor = new SysLogininfor();
         logininfor.setUserName(username);
         logininfor.setIpaddr(ctx.realIp());
         logininfor.setStatus("0");
 
         if (StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
-            logininfor.setStatus("1");
-            logininfor.setMsg("用户名或密码不能为空");
-            logininforMapper.insert(logininfor);
+            failLogin(logininfor, "用户名或密码不能为空");
             return error("用户名或密码不能为空");
         }
 
-        // 查找用户
+        // 验证码校验
+        if (!CaptchaUtils.validate(uuid, code)) {
+            failLogin(logininfor, "验证码错误");
+            return error("验证码错误");
+        }
+
         SysUser user = userService.selectUserByUserName(username);
         if (user == null) {
-            logininfor.setStatus("1");
-            logininfor.setMsg("用户不存在");
-            logininforMapper.insert(logininfor);
+            failLogin(logininfor, "用户不存在");
             return error("用户不存在");
         }
 
         if ("1".equals(user.getStatus())) {
-            logininfor.setStatus("1");
-            logininfor.setMsg("用户已停用");
-            logininforMapper.insert(logininfor);
+            failLogin(logininfor, "用户已停用");
             return error("用户已停用");
         }
 
-        // 验证密码
         if (!SecureUtil.md5(password).equals(user.getPassword())) {
-            logininfor.setStatus("1");
-            logininfor.setMsg("密码错误");
-            logininforMapper.insert(logininfor);
+            failLogin(logininfor, "密码错误");
             return error("密码错误");
         }
 
@@ -83,6 +91,9 @@ public class SysLoginController extends BaseController {
 
         // 生成Token
         String token = SecurityUtils.createToken(user.getUserId(), user.getUserName());
+
+        // 记录在线用户
+        SysOnlineController.addUser(token, user.getUserId(), user.getUserName(), ctx.realIp());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -100,11 +111,9 @@ public class SysLoginController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         result.put("user", user);
 
-        // 获取角色权限
         List<String> roles = menuService.selectMenuPermsByUserId(userId);
         result.put("roles", roles);
 
-        // 获取权限标识
         List<String> perms = menuService.selectMenuPermsByUserId(userId);
         result.put("permissions", perms);
 
@@ -121,7 +130,18 @@ public class SysLoginController extends BaseController {
 
     @Post
     @Mapping("/logout")
-    public AjaxResult logout() {
+    public AjaxResult logout(Context ctx) {
+        String token = ctx.header("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            SysOnlineController.removeUser(token);
+        }
         return success("退出成功");
+    }
+
+    private void failLogin(SysLogininfor logininfor, String msg) {
+        logininfor.setStatus("1");
+        logininfor.setMsg(msg);
+        logininforMapper.insert(logininfor);
     }
 }

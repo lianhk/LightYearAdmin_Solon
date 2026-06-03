@@ -125,7 +125,36 @@ CREATE TABLE sys_role_menu (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色菜单关联表';
 
 -- ----------------------------
--- 7. 字典类型表
+-- 7. 岗位表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_post;
+CREATE TABLE sys_post (
+  post_id bigint(20) NOT NULL AUTO_INCREMENT COMMENT '岗位ID',
+  post_code varchar(64) NOT NULL COMMENT '岗位编码',
+  post_name varchar(50) NOT NULL COMMENT '岗位名称',
+  post_sort int(4) NOT NULL COMMENT '显示顺序',
+  status char(1) DEFAULT '0' COMMENT '状态(0正常 1停用)',
+  create_by varchar(64) DEFAULT '' COMMENT '创建者',
+  create_time datetime DEFAULT NULL COMMENT '创建时间',
+  update_by varchar(64) DEFAULT '' COMMENT '更新者',
+  update_time datetime DEFAULT NULL COMMENT '更新时间',
+  remark varchar(500) DEFAULT NULL COMMENT '备注',
+  PRIMARY KEY (post_id)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COMMENT='岗位表';
+
+-- ----------------------------
+-- 8. 用户岗位关联表
+-- ----------------------------
+DROP TABLE IF EXISTS sys_user_post;
+CREATE TABLE sys_user_post (
+  user_id bigint(20) NOT NULL COMMENT '用户ID',
+  post_id bigint(20) NOT NULL COMMENT '岗位ID',
+  PRIMARY KEY (user_id, post_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户岗位关联表';
+
+-- ----------------------------
+-- 9. 字典类型表
+-- 8→9 after sys_post/sys_user_post insertion
 -- ----------------------------
 DROP TABLE IF EXISTS sys_dict_type;
 CREATE TABLE sys_dict_type (
@@ -265,6 +294,23 @@ INSERT INTO sys_user VALUES (4,  105, 'wangwu',  '王五', 'wangwu@example.com',
 INSERT INTO sys_user VALUES (5,  101, 'test',    '测试用户', 'test@example.com', '13800000013', '0', '',  '0192023a7bbd73250516f069df18b500', '0', '0', '', NULL, 'admin', '2024-01-01 00:00:00', '', '测试账号');
 
 -- ----------------------------
+-- 岗位数据
+-- ----------------------------
+INSERT INTO sys_post VALUES (1, 'ceo',     '董事长',   1, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+INSERT INTO sys_post VALUES (2, 'cto',     '技术总监', 2, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+INSERT INTO sys_post VALUES (3, 'se',      '软件工程师', 3, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+INSERT INTO sys_post VALUES (4, 'pm',      '产品经理', 4, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+INSERT INTO sys_post VALUES (5, 'hr',      '人事专员', 5, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+INSERT INTO sys_post VALUES (6, 'sales',   '销售经理', 6, '0', 'admin', '2024-01-01 00:00:00', '', NULL, '');
+
+-- 用户岗位关联
+INSERT INTO sys_user_post VALUES (1, 1);
+INSERT INTO sys_user_post VALUES (2, 3);
+INSERT INTO sys_user_post VALUES (3, 6);
+INSERT INTO sys_user_post VALUES (4, 5);
+INSERT INTO sys_user_post VALUES (5, 4);
+
+-- ----------------------------
 -- 角色数据
 -- ----------------------------
 INSERT INTO sys_role VALUES (1, '超级管理员', 'admin', 1, '1', 1, 1, '0', '0', 'admin', '2024-01-01 00:00:00', '', NULL, '拥有所有权限');
@@ -294,10 +340,13 @@ INSERT INTO sys_menu VALUES (13,  '部门管理', 1, 4, 'dept',       'page/dept
 INSERT INTO sys_menu VALUES (14,  '字典管理', 1, 5, 'dict',       'page/dict.html',       '', '', 1, 0, 'C', '0', '0', 'system:dict:list',     'mdi mdi-book-open-page-variant', 'admin', '2024-01-01 00:00:00', '', '字典管理菜单');
 INSERT INTO sys_menu VALUES (15,  '参数设置', 1, 6, 'config',     'page/config.html',     '', '', 1, 0, 'C', '0', '0', 'system:config:list',   'mdi mdi-cog',                'admin', '2024-01-01 00:00:00', '', '参数设置菜单');
 INSERT INTO sys_menu VALUES (16,  '通知公告', 1, 7, 'notice',     'page/notice.html',     '', '', 1, 0, 'C', '0', '0', 'system:notice:list',   'mdi mdi-bell-outline',       'admin', '2024-01-01 00:00:00', '', '通知公告菜单');
+INSERT INTO sys_menu VALUES (17,  '岗位管理', 1, 8, 'post',       'page/post.html',       '', '', 1, 0, 'C', '0', '0', 'system:post:list',     'mdi mdi-badge-account-horizontal', 'admin', '2024-01-01 00:00:00', '', '岗位管理菜单');
 
 -- 系统监控子菜单
 INSERT INTO sys_menu VALUES (20,  '操作日志', 2, 1, 'operlog',    'page/operlog.html',    '', '', 1, 0, 'C', '0', '0', 'monitor:operlog:list', 'mdi mdi-file-document-outline', 'admin', '2024-01-01 00:00:00', '', '操作日志菜单');
 INSERT INTO sys_menu VALUES (21,  '登录日志', 2, 2, 'logininfor', 'page/logininfor.html', '', '', 1, 0, 'C', '0', '0', 'monitor:logininfor:list', 'mdi mdi-login-variant',    'admin', '2024-01-01 00:00:00', '', '登录日志菜单');
+INSERT INTO sys_menu VALUES (22,  '在线用户', 2, 3, 'online',     'page/online.html',     '', '', 1, 0, 'C', '0', '0', 'monitor:online:list',   'mdi mdi-account-check',      'admin', '2024-01-01 00:00:00', '', '在线用户菜单');
+INSERT INTO sys_menu VALUES (23,  '服务监控', 2, 4, 'server',     'page/server.html',     '', '', 1, 0, 'C', '0', '0', 'monitor:server:list',   'mdi mdi-server',             'admin', '2024-01-01 00:00:00', '', '服务监控菜单');
 
 -- 用户管理按钮权限
 INSERT INTO sys_menu VALUES (1001, '用户查询', 10, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'system:user:query',  '#', 'admin', '2024-01-01 00:00:00', '', '');
@@ -321,10 +370,10 @@ INSERT INTO sys_menu VALUES (112, '模板管理', 100, 3, 'template',    'page/t
 -- 角色菜单关联 (管理员拥有所有菜单)
 -- ----------------------------
 INSERT INTO sys_role_menu VALUES
-(1, 1), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15), (1, 16),
+(1, 1), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15), (1, 16), (1, 17),
 (1, 1001), (1, 1002), (1, 1003), (1, 1004), (1, 1005),
 (1, 1011), (1, 1012), (1, 1013), (1, 1014),
-(1, 2), (1, 20), (1, 21),
+(1, 2), (1, 20), (1, 21), (1, 22), (1, 23),
 (1, 3),
 (1, 100), (1, 110), (1, 111), (1, 112);
 

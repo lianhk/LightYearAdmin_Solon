@@ -6,6 +6,8 @@
     <title>CMS Scaffold 管理系统</title>
     <link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="/static/lib/multitabs/multitabs.min.css" rel="stylesheet">
+    <link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
     <link href="css/lyear.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -102,9 +104,6 @@
             justify-content: space-between;
             padding: 0 20px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 999;
         }
         .header-left { display: flex; align-items: center; }
         .sidebar-toggle {
@@ -126,18 +125,90 @@
         }
         .header-right .header-item:hover { background: #f5f5f5; color: #333; }
 
+        /* 多标签页容器 */
+        .multitabs-container {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 0 15px;
+            min-height: 40px;
+            display: flex;
+            align-items: flex-end;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .multitabs-container::-webkit-scrollbar { height: 2px; }
+        .multitabs-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+        .multitabs-container .tab-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            border: 1px solid transparent;
+            position: relative;
+            white-space: nowrap;
+            color: #666;
+            font-size: 13px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .multitabs-container .tab-item:hover { color: #333; background: #f9f9f9; }
+        .multitabs-container .tab-item.active {
+            background: #fff;
+            border-color: #eee #eee #fff;
+            color: #4facfe;
+            font-weight: 600;
+        }
+        .multitabs-container .tab-item .tab-close {
+            margin-left: 6px;
+            font-size: 14px;
+            line-height: 1;
+            color: #999;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .multitabs-container .tab-item .tab-close:hover { background: #e74c3c; color: #fff; }
+        .multitabs-container .tab-item.home-tab .tab-close { display: none; }
+
         /* 内容区 */
-        .lyear-layout-content { padding: 20px; }
+        .lyear-layout-content { padding: 0; }
 
         /* iframe */
         .content-iframe {
             width: 100%;
-            height: calc(100vh - 80px);
+            height: calc(100vh - 100px);
             border: none;
             background: #fff;
-            border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
+
+        /* 右键菜单 */
+        .tab-context-menu {
+            display: none;
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 10000;
+            min-width: 120px;
+            padding: 4px 0;
+        }
+        .tab-context-menu .menu-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+            white-space: nowrap;
+        }
+        .tab-context-menu .menu-item:hover { background: #4facfe; color: #fff; }
+        .tab-context-menu .menu-divider { border-top: 1px solid #eee; margin: 4px 0; }
 
         /* 收起侧边栏 */
         .sidebar-collapsed .lyear-layout-sidebar { width: 64px; }
@@ -189,14 +260,212 @@
             </div>
         </header>
 
+        <!-- 多标签页栏 -->
+        <div class="multitabs-container" id="multitabs">
+            <span class="tab-item home-tab active" data-id="home" data-url="/page/welcome.html" onclick="switchTab('home')">
+                首页
+                <span class="tab-close">&times;</span>
+            </span>
+        </div>
+
         <!-- 内容区 -->
         <div class="lyear-layout-content">
             <iframe id="contentIframe" class="content-iframe" src="/static/page/welcome.html"></iframe>
         </div>
     </main>
 
+    <!-- 右键菜单 -->
+    <div class="tab-context-menu" id="tabContextMenu">
+        <div class="menu-item" onclick="closeCurrentTab()">关闭当前</div>
+        <div class="menu-item" onclick="closeOtherTabs()">关闭其他</div>
+        <div class="menu-item" onclick="closeAllTabs()">关闭全部</div>
+    </div>
+
     <script src="/static/lib/jquery/jquery.min.js"></script>
+    <script src="/static/lib/layer/layer.js"></script>
+    <script src="/static/lib/lyear/jquery.lyear.loading.js"></script>
+    <script src="/static/lib/multitabs/multitabs.min.js"></script>
     <script>
+        // ============== 多标签页管理 ==============
+        var tabs = [
+            { id: 'home', title: '首页', url: '/page/welcome.html', closable: false }
+        ];
+        var activeTabId = 'home';
+
+        // 加载页面到标签页
+        function loadPage(url, title) {
+            if (!url) return;
+
+            // 检查标签是否已存在
+            var existingTab = null;
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].url === url) {
+                    existingTab = tabs[i];
+                    break;
+                }
+            }
+
+            if (existingTab) {
+                // 已存在，直接切换
+                switchTab(existingTab.id);
+            } else {
+                // 不存在，创建新标签
+                showLoading();
+                var tabId = 'tab_' + Date.now();
+                tabs.push({ id: tabId, title: title || '新页面', url: url, closable: true });
+
+                // 在DOM中创建标签
+                var $tabItem = $('<span>')
+                    .addClass('tab-item')
+                    .attr('data-id', tabId)
+                    .attr('data-url', url)
+                    .text(title || '新页面')
+                    .on('click', function(e) {
+                        if (e.which === 3) return; // 右键交给contextmenu处理
+                        switchTab(tabId);
+                    })
+                    .on('contextmenu', function(e) {
+                        e.preventDefault();
+                        showContextMenu(e, tabId);
+                    });
+
+                var $closeBtn = $('<span>').addClass('tab-close').html('&times;').on('click', function(e) {
+                    e.stopPropagation();
+                    closeTab(tabId);
+                });
+                $tabItem.append($closeBtn);
+
+                $('#multitabs').append($tabItem);
+
+                // 切换iframe
+                $('#contentIframe').attr('src', '/static/' + url);
+                switchTab(tabId);
+            }
+        }
+
+        // 切换标签
+        function switchTab(tabId) {
+            activeTabId = tabId;
+
+            // 更新标签激活状态
+            $('#multitabs .tab-item').removeClass('active');
+            $('#multitabs .tab-item[data-id="' + tabId + '"]').addClass('active');
+
+            // 更新面包屑
+            var tab = findTab(tabId);
+            if (tab) {
+                $('#breadcrumb').text(tab.title);
+
+                // 如果切换的不是当前iframe的URL，更新iframe
+                var currentSrc = $('#contentIframe').attr('src');
+                var targetSrc = '/static/' + tab.url;
+                if (currentSrc !== targetSrc) {
+                    showLoading();
+                    $('#contentIframe').attr('src', targetSrc);
+                }
+            }
+
+            // 更新侧边栏激活状态
+            $('.sidebar-nav .nav-link').removeClass('active');
+        }
+
+        // 关闭标签
+        function closeTab(tabId) {
+            var tab = findTab(tabId);
+            if (!tab || !tab.closable) return;
+
+            // 从数组中移除
+            var idx = -1;
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].id === tabId) { idx = i; break; }
+            }
+            if (idx >= 0) tabs.splice(idx, 1);
+
+            // 从DOM中移除
+            $('#multitabs .tab-item[data-id="' + tabId + '"]').remove();
+
+            // 如果关闭的是当前激活的标签，切换到相邻标签或首页
+            if (activeTabId === tabId) {
+                var nextTab = tabs[idx] || tabs[tabs.length - 1] || tabs[0];
+                if (nextTab) {
+                    switchTab(nextTab.id);
+                }
+            }
+        }
+
+        // 关闭当前标签（右键菜单用）
+        function closeCurrentTab() {
+            var tab = findTab(activeTabId);
+            if (tab && tab.closable) {
+                closeTab(activeTabId);
+            }
+        }
+
+        // 关闭其他标签
+        function closeOtherTabs() {
+            var toClose = [];
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].id !== activeTabId && tabs[i].closable) {
+                    toClose.push(tabs[i].id);
+                }
+            }
+            for (var j = 0; j < toClose.length; j++) {
+                closeTab(toClose[j]);
+            }
+        }
+
+        // 关闭全部标签（回到首页）
+        function closeAllTabs() {
+            var toClose = [];
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].closable) {
+                    toClose.push(tabs[i].id);
+                }
+            }
+            for (var j = 0; j < toClose.length; j++) {
+                closeTab(toClose[j]);
+            }
+            switchTab('home');
+        }
+
+        // 查找标签
+        function findTab(tabId) {
+            for (var i = 0; i < tabs.length; i++) {
+                if (tabs[i].id === tabId) return tabs[i];
+            }
+            return null;
+        }
+
+        // 右键菜单
+        var contextMenuTargetId = null;
+        function showContextMenu(e, tabId) {
+            contextMenuTargetId = tabId;
+            var $menu = $('#tabContextMenu');
+            $menu.css({ left: e.pageX + 'px', top: e.pageY + 'px' }).show();
+
+            // 切换到右键的标签
+            if (tabId !== activeTabId) {
+                switchTab(tabId);
+            }
+        }
+        $(document).on('click', function() {
+            $('#tabContextMenu').hide();
+        });
+
+        // Loading
+        function showLoading() {
+            layer.load(1, { shade: [0.3, '#000'] });
+        }
+        function hideLoading() {
+            setTimeout(function() { layer.closeAll('loading'); }, 300);
+        }
+
+        // 监听iframe加载完成
+        $('#contentIframe').on('load', function() {
+            hideLoading();
+        });
+
+        // ============== 初始化 ==============
         $(function() {
             // 检查登录状态
             var token = localStorage.getItem('token');
@@ -278,20 +547,6 @@
                 $submenu.toggleClass('open');
             });
         }
-
-        // 加载页面到iframe
-        function loadPage(url, title) {
-            if (!url) return;
-            $('#contentIframe').attr('src', '/static/' + url);
-            $('#breadcrumb').text(title || '');
-            // 当前激活菜单
-            $('.sidebar-nav .nav-link').removeClass('active');
-        }
-
-        // 监听iframe加载完成
-        $('#contentIframe').on('load', function() {
-            // iframe内部可以通过parent调用外部方法
-        });
     </script>
 </body>
 </html>
