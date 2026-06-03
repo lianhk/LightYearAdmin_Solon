@@ -12,6 +12,19 @@ select * from sys_logininfor
 @}
 order by login_time desc
 
+selectLogininforList$count
+===
+select count(1) from sys_logininfor
+@if(!isEmpty(userName)){
+  and user_name like #{'%' + userName + '%'}
+@}
+@if(!isEmpty(ipaddr)){
+  and ipaddr like #{'%' + ipaddr + '%'}
+@}
+@if(!isEmpty(status)){
+  and status = #{status}
+@}
+
 cleanLogininfor
 ===
 truncate table sys_logininfor

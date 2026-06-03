@@ -4,6 +4,7 @@ import com.cms.common.exception.ServiceException;
 import com.cms.system.domain.SysRole;
 import com.cms.system.mapper.SysRoleMapper;
 import com.cms.system.service.ISysRoleService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 
@@ -18,6 +19,11 @@ public class SysRoleServiceImpl implements ISysRoleService {
     @Override
     public List<SysRole> selectRoleList(SysRole role) {
         return roleMapper.selectRoleList(role);
+    }
+
+    @Override
+    public List<SysRole> selectRolePage(SysRole role, PageQuery pageQuery) {
+        return roleMapper.selectRoleList(role, pageQuery);
     }
 
     @Override

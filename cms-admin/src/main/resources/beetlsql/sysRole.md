@@ -13,6 +13,20 @@ where r.del_flag = '0'
 @}
 order by r.role_sort
 
+selectRoleList$count
+===
+select count(1) from sys_role r
+where r.del_flag = '0'
+@if(!isEmpty(roleName)){
+  and r.role_name like #{'%' + roleName + '%'}
+@}
+@if(!isEmpty(roleKey)){
+  and r.role_key like #{'%' + roleKey + '%'}
+@}
+@if(!isEmpty(status)){
+  and r.status = #{status}
+@}
+
 selectRolesByUserId
 ===
 select r.* from sys_role r

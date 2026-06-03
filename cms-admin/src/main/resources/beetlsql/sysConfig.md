@@ -12,6 +12,19 @@ select * from sys_config
 @}
 order by create_time desc
 
+selectConfigList$count
+===
+select count(1) from sys_config
+@if(!isEmpty(configName)){
+  and config_name like #{'%' + configName + '%'}
+@}
+@if(!isEmpty(configKey)){
+  and config_key like #{'%' + configKey + '%'}
+@}
+@if(!isEmpty(configType)){
+  and config_type = #{configType}
+@}
+
 checkConfigKeyUnique
 ===
 select * from sys_config where config_key = #{configKey}

@@ -12,6 +12,19 @@ select * from sys_post
 @}
 order by post_sort
 
+selectPostList$count
+===
+select count(1) from sys_post
+@if(!isEmpty(postCode)){
+  and post_code like #{'%' + postCode + '%'}
+@}
+@if(!isEmpty(postName)){
+  and post_name like #{'%' + postName + '%'}
+@}
+@if(!isEmpty(status)){
+  and status = #{status}
+@}
+
 selectPostsByUserId
 ===
 select p.* from sys_post p

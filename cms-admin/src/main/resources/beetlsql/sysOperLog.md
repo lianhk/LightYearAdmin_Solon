@@ -12,6 +12,19 @@ select * from sys_oper_log
 @}
 order by oper_time desc
 
+selectOperLogList$count
+===
+select count(1) from sys_oper_log
+@if(!isEmpty(title)){
+  and title like #{'%' + title + '%'}
+@}
+@if(!isEmpty(operName)){
+  and oper_name like #{'%' + operName + '%'}
+@}
+@if(!isEmpty(status)){
+  and status = #{status}
+@}
+
 cleanOperLog
 ===
 truncate table sys_oper_log

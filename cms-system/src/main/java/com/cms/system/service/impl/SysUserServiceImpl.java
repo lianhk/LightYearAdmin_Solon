@@ -7,6 +7,7 @@ import com.cms.common.utils.StringUtils;
 import com.cms.system.domain.SysUser;
 import com.cms.system.mapper.SysUserMapper;
 import com.cms.system.service.ISysUserService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 
@@ -31,6 +32,11 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     public List<SysUser> selectUserList(SysUser user) {
         return userMapper.selectUserList(user);
+    }
+
+    @Override
+    public List<SysUser> selectUserPage(SysUser user, PageQuery pageQuery) {
+        return userMapper.selectUserList(user, pageQuery);
     }
 
     @Override

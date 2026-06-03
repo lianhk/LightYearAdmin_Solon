@@ -3,6 +3,7 @@ package com.cms.system.service.impl;
 import com.cms.system.domain.SysNotice;
 import com.cms.system.mapper.SysNoticeMapper;
 import com.cms.system.service.ISysNoticeService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 
@@ -17,6 +18,11 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     @Override
     public List<SysNotice> selectNoticeList(SysNotice notice) {
         return noticeMapper.selectNoticeList(notice);
+    }
+
+    @Override
+    public List<SysNotice> selectNoticePage(SysNotice notice, PageQuery pageQuery) {
+        return noticeMapper.selectNoticeList(notice, pageQuery);
     }
 
     @Override

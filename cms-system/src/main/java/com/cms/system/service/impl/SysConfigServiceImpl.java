@@ -3,6 +3,7 @@ package com.cms.system.service.impl;
 import com.cms.system.domain.SysConfig;
 import com.cms.system.mapper.SysConfigMapper;
 import com.cms.system.service.ISysConfigService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 
@@ -17,6 +18,11 @@ public class SysConfigServiceImpl implements ISysConfigService {
     @Override
     public List<SysConfig> selectConfigList(SysConfig config) {
         return configMapper.selectConfigList(config);
+    }
+
+    @Override
+    public List<SysConfig> selectConfigPage(SysConfig config, PageQuery pageQuery) {
+        return configMapper.selectConfigList(config, pageQuery);
     }
 
     @Override

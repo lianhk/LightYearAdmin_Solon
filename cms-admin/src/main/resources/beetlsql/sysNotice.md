@@ -12,6 +12,19 @@ select * from sys_notice
 @}
 order by create_time desc
 
+selectNoticeList$count
+===
+select count(1) from sys_notice
+@if(!isEmpty(noticeTitle)){
+  and notice_title like #{'%' + noticeTitle + '%'}
+@}
+@if(!isEmpty(noticeType)){
+  and notice_type = #{noticeType}
+@}
+@if(!isEmpty(status)){
+  and status = #{status}
+@}
+
 insert
 ===
 insert into sys_notice(notice_id,notice_title,notice_type,notice_content,status,create_by,create_time,remark)

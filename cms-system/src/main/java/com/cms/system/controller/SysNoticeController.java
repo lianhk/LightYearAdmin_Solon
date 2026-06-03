@@ -4,6 +4,7 @@ import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
 import com.cms.system.domain.SysNotice;
 import com.cms.system.service.ISysNoticeService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
@@ -28,7 +29,22 @@ public class SysNoticeController extends BaseController {
         if (noticeTitle != null && !noticeTitle.isEmpty()) search.setNoticeTitle(noticeTitle);
         String noticeType = ctx.param("noticeType");
         if (noticeType != null && !noticeType.isEmpty()) search.setNoticeType(noticeType);
-        ctx.attrSet("list", noticeService.selectNoticeList(search));
+
+        int pageNum = 1;
+        int pageSize = 10;
+        try { pageNum = Integer.parseInt(ctx.param("pageNum", "1")); } catch(Exception e){}
+        try { pageSize = Integer.parseInt(ctx.param("pageSize", "10")); } catch(Exception e){}
+
+        PageQuery query = new PageQuery(pageNum, pageSize);
+        List<SysNotice> list = noticeService.selectNoticePage(search, query);
+
+        ctx.attrSet("list", list);
+        ctx.attrSet("total", query.getTotalCount());
+        ctx.attrSet("pageNum", pageNum);
+        ctx.attrSet("pageSize", pageSize);
+        ctx.attrSet("totalPages", (int)Math.ceil(query.getTotalCount() * 1.0 / pageSize));
+        ctx.attrSet("noticeTitle", noticeTitle);
+        ctx.attrSet("noticeType", noticeType);
         ctx.render("notice.html");
     }
 

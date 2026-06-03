@@ -107,14 +107,18 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
         <% } %>
       </tbody>
     </table>
-    <div style="display:flex;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
-      <span>共 <b id="totalCount">${list.~size}</b> 条</span>
-      <div style="margin-left:16px;display:flex;gap:4px">
-        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(1)" style="padding:4px 10px">首页</button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-1)" style="padding:4px 10px">上一页</button>
-        <span style="line-height:30px;margin:0 8px">第 <b id="pageNum">1</b> / <b id="totalPages">1</b> 页</span>
-        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-2)" style="padding:4px 10px">下一页</button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-3)" style="padding:4px 10px">末页</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
+      <span>共 <b>${total!0}</b> 条记录</span>
+      <div style="display:flex;gap:4px">
+        <% if(pageNum > 1) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=1&pageSize=${pageSize!10}<% if(userName!=null){ %>&userName=${userName}<% } %><% if(status!=null){ %>&status=${status}<% } %><% if(phoneNumber!=null){ %>&phoneNumber=${phoneNumber}<% } %>'">首页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum-1}&pageSize=${pageSize!10}<% if(userName!=null){ %>&userName=${userName}<% } %><% if(status!=null){ %>&status=${status}<% } %><% if(phoneNumber!=null){ %>&phoneNumber=${phoneNumber}<% } %>'">上一页</button>
+        <% } %>
+        <span style="line-height:30px;margin:0 8px">第 <b>${pageNum!1}</b> / <b>${totalPages!1}</b> 页</span>
+        <% if(pageNum < totalPages) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum+1}&pageSize=${pageSize!10}<% if(userName!=null){ %>&userName=${userName}<% } %><% if(status!=null){ %>&status=${status}<% } %><% if(phoneNumber!=null){ %>&phoneNumber=${phoneNumber}<% } %>'">下一页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${totalPages}&pageSize=${pageSize!10}<% if(userName!=null){ %>&userName=${userName}<% } %><% if(status!=null){ %>&status=${status}<% } %><% if(phoneNumber!=null){ %>&phoneNumber=${phoneNumber}<% } %>'">末页</button>
+        <% } %>
       </div>
     </div>
   </div>

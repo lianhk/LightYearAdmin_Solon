@@ -24,6 +24,27 @@ where u.del_flag = '0'
 @}
 order by u.create_time desc
 
+selectUserList$count
+===
+select count(1) from sys_user u
+left join sys_dept d on u.dept_id = d.dept_id
+where u.del_flag = '0'
+@if(!isEmpty(userName)){
+  and u.user_name like #{'%' + userName + '%'}
+@}
+@if(!isEmpty(nickName)){
+  and u.nick_name like #{'%' + nickName + '%'}
+@}
+@if(!isEmpty(phoneNumber)){
+  and u.phone_number like #{'%' + phoneNumber + '%'}
+@}
+@if(!isEmpty(status)){
+  and u.status = #{status}
+@}
+@if(!isEmpty(deptId)){
+  and (u.dept_id = #{deptId} or u.dept_id in (select dept_id from sys_dept where find_in_set(#{deptId}, ancestors)))
+@}
+
 checkUserNameUnique
 ===
 select count(1) from sys_user where user_name = #{userName} and del_flag = '0'

@@ -1,6 +1,8 @@
 package com.cms.system.service;
 
 import com.cms.system.domain.SysUser;
+import org.beetl.sql.core.query.PageQuery;
+
 import java.util.List;
 
 public interface ISysUserService {
@@ -10,6 +12,8 @@ public interface ISysUserService {
     SysUser selectUserByUserName(String userName);
 
     List<SysUser> selectUserList(SysUser user);
+
+    List<SysUser> selectUserPage(SysUser user, PageQuery pageQuery);
 
     int insertUser(SysUser user);
 

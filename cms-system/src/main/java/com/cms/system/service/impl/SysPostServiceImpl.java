@@ -3,6 +3,7 @@ package com.cms.system.service.impl;
 import com.cms.system.domain.SysPost;
 import com.cms.system.mapper.SysPostMapper;
 import com.cms.system.service.ISysPostService;
+import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 
@@ -17,6 +18,11 @@ public class SysPostServiceImpl implements ISysPostService {
     @Override
     public List<SysPost> selectPostList(SysPost post) {
         return postMapper.selectPostList(post);
+    }
+
+    @Override
+    public List<SysPost> selectPostPage(SysPost post, PageQuery pageQuery) {
+        return postMapper.selectPostList(post, pageQuery);
     }
 
     @Override

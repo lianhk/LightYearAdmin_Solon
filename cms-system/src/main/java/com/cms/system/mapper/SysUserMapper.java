@@ -1,6 +1,7 @@
 package com.cms.system.mapper;
 
 import com.cms.system.domain.SysUser;
+import org.beetl.sql.core.query.PageQuery;
 import org.beetl.sql.mapper.BaseMapper;
 import org.beetl.sql.mapper.annotation.Sql;
 import org.beetl.sql.mapper.annotation.SqlResource;
@@ -13,6 +14,8 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     SysUser selectUserByUserName(String userName);
 
     List<SysUser> selectUserList(SysUser user);
+
+    List<SysUser> selectUserList(SysUser user, PageQuery pageQuery);
 
     int checkUserNameUnique(String userName);
 
