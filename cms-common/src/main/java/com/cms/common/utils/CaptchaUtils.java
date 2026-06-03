@@ -35,6 +35,10 @@ public class CaptchaUtils {
         return new CaptchaResult(uuid, captcha.getImageBase64Data());
     }
 
+    public static String getCode(String uuid) {
+        return CODE_MAP.get(uuid);
+    }
+
     public static boolean validate(String uuid, String code) {
         if (StringUtils.isBlank(uuid) || StringUtils.isBlank(code)) {
             return false;

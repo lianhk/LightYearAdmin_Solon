@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通知公告</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.search-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.search-form .form-group{margin-bottom:0}
+.search-form label{font-size:13px;color:#666;margin-bottom:4px;display:block}
+.notice-title-link{color:#4facfe;cursor:pointer}
+.notice-title-link:hover{text-decoration:underline;color:#3d8fd9}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
+  </div>
+  <div class="section-body">
+    <form class="search-form" method="get" action="">
+      <div class="form-group">
+        <label>公告标题</label>
+        <input type="text" class="form-control" name="noticeTitle" placeholder="输入公告标题" value="${noticeTitle!''}" style="width:200px">
+      </div>
+      <div class="form-group">
+        <label>公告类型</label>
+        <select class="form-control" name="noticeType" style="width:140px">
+          <option value="">全部</option>
+          <option value="1" ${noticeType!''=='1'?'selected':''}>通知</option>
+          <option value="2" ${noticeType!''=='2'?'selected':''}>公告</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn btn-primary" style="height:38px;padding:0 20px"><span class="mdi mdi-magnify"></span> 搜索</button>
+        <button type="reset" class="btn btn-default" style="height:38px;padding:0 16px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;margin-left:6px"><span class="mdi mdi-refresh"></span> 重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-bell-ring"></span> 通知公告列表</span>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button>
+  </div>
+  <div class="section-body" style="padding:0">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:60px">#</th>
+          <th>公告标题</th>
+          <th>类型</th>
+          <th>状态</th>
+          <th>创建者</th>
+          <th>创建时间</th>
+          <th style="width:160px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(list != null && list.~size > 0) { %>
+          <% for(var item in list) { %>
+          <tr>
+            <td>${itemLP.index}</td>
+            <td><span class="notice-title-link" onclick="viewDetail('${item.noticeId}')">${item.noticeTitle}</span></td>
+            <td>
+              <% if(item.noticeType == '1') { %>
+                <span class="badge badge-success">通知</span>
+              <% } else { %>
+                <span class="badge badge-danger">公告</span>
+              <% } %>
+            </td>
+            <td>
+              <% if(item.status == '0') { %>
+                <span class="badge badge-success">正常</span>
+              <% } else { %>
+                <span class="badge badge-danger">关闭</span>
+              <% } %>
+            </td>
+            <td>${item.createBy!''}</td>
+            <td>${item.createTime!''}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openEdit('${item.noticeId}')"><span class="mdi mdi-pencil"></span></button>
+              <button class="btn btn-danger btn-sm" onclick="doDelete('${item.noticeId}')" style="background:#fa709a;border-color:#fa709a;color:#fff"><span class="mdi mdi-delete"></span></button>
+            </td>
+          </tr>
+          <% } %>
+        <% } else { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无数据</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">新增公告</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editNoticeId">
+        <div class="form-group">
+          <label>公告标题</label>
+          <input type="text" class="form-control" id="noticeTitle" placeholder="请输入公告标题">
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>公告类型</label>
+              <select class="form-control" id="noticeType">
+                <option value="1">通知</option>
+                <option value="2">公告</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>状态</label>
+              <select class="form-control" id="status">
+                <option value="0">正常</option>
+                <option value="1">关闭</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>公告内容</label>
+          <textarea class="form-control" id="noticeContent" rows="6" placeholder="请输入公告内容"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 查看详情弹窗 -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailTitle">公告详情</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="detailContent" style="font-size:13px;color:#555;line-height:1.8;min-height:100px"></div>
+        <div style="margin-top:15px;color:#aaa;font-size:12px" id="detailMeta"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var isEdit = false;
+
+function openAdd(){
+  isEdit = false;
+  $('#modalTitle').text('新增公告');
+  $('#editNoticeId').val('');
+  $('#noticeTitle').val('');
+  $('#noticeType').val('1');
+  $('#status').val('0');
+  $('#noticeContent').val('');
+  $('#formModal').modal('show');
+}
+
+function openEdit(noticeId){
+  isEdit = true;
+  $('#modalTitle').text('编辑公告');
+  $.get('/system/notice/detail?noticeId='+noticeId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editNoticeId').val(data.noticeId);
+      $('#noticeTitle').val(data.noticeTitle);
+      $('#noticeType').val(data.noticeType);
+      $('#status').val(data.status);
+      $('#noticeContent').val(data.noticeContent||'');
+      $('#formModal').modal('show');
+    }
+  });
+}
+
+function submitForm(){
+  var url = isEdit ? '/system/notice/edit' : '/system/notice/add';
+  var data = {
+    noticeId: $('#editNoticeId').val(),
+    noticeTitle: $('#noticeTitle').val(),
+    noticeType: $('#noticeType').val(),
+    status: $('#status').val(),
+    noticeContent: $('#noticeContent').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#formModal').modal('hide');
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+function viewDetail(noticeId){
+  $.get('/system/notice/detail?noticeId='+noticeId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#detailTitle').text(data.noticeTitle);
+      $('#detailContent').html(data.noticeContent||'暂无内容');
+      $('#detailMeta').text('发布者：'+(data.createBy||'')+' | 时间：'+(data.createTime||''));
+      $('#detailModal').modal('show');
+    }
+  });
+}
+
+function doDelete(noticeId){
+  layer.confirm('确定要删除该公告吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/system/notice/delete', {noticeId:noticeId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

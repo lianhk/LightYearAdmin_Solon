@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CMS后台管理系统</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:"Microsoft YaHei",sans-serif;background:#f5f7fa}
+
+/* 顶部导航 */
+.topbar{height:60px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:fixed;top:0;left:240px;right:0;z-index:1000;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.topbar-left{display:flex;align-items:center;font-size:14px;color:#666}
+.topbar-left .breadcrumb{margin:0;padding:0;background:none;font-size:13px}
+.topbar-left .breadcrumb span{color:#4facfe}
+.topbar-right{display:flex;align-items:center;gap:15px}
+.topbar-right .user-name{font-size:13px;color:#555}
+.topbar-right .mdi{font-size:18px;color:#888;cursor:pointer}
+.topbar-right .btn-logout{background:none;border:1px solid #ddd;padding:4px 14px;border-radius:4px;color:#888;font-size:13px;cursor:pointer;transition:all 0.2s}
+.topbar-right .btn-logout:hover{color:#fa709a;border-color:#fa709a}
+
+/* 标签栏 */
+.tabs-bar{height:38px;background:#fafafa;border-bottom:1px solid #e8e8e8;position:fixed;top:60px;left:240px;right:0;z-index:999;display:flex;align-items:center;padding:0 8px;overflow:hidden}
+.tabs-scroll{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;white-space:nowrap;flex:1}
+.tabs-scroll::-webkit-scrollbar{height:3px}
+.tabs-scroll::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+.tab-item{display:inline-flex;align-items:center;height:30px;line-height:30px;padding:0 10px;margin:0 2px;font-size:12px;color:#888;background:#f0f0f0;border-radius:3px 3px 0 0;cursor:pointer;user-select:none;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;transition:background 0.2s;flex-shrink:0}
+.tab-item:hover{background:#e0e0e0}
+.tab-item.active{background:#fff;color:#333;border:1px solid #e8e8e8;border-bottom-color:#fff;font-weight:500}
+.tab-item .tab-close{margin-left:6px;font-size:14px;color:#bbb;line-height:1;cursor:pointer}
+.tab-item .tab-close:hover{color:#fa709a}
+.tab-item.home-tab .tab-close{display:none}
+.tabs-context-btn{padding:2px 6px;font-size:11px;color:#aaa;cursor:pointer;margin-left:4px;flex-shrink:0}
+
+/* 内容区 */
+.content-wrapper{position:fixed;top:98px;left:240px;right:0;bottom:0;background:#fff}
+.content-wrapper iframe{width:100%;height:100%;border:none}
+
+/* 侧边栏 */
+.sidebar{width:240px;height:100%;background:#2c3e50;position:fixed;left:0;top:0;z-index:1001;overflow-y:auto;overflow-x:hidden}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.sidebar-logo{height:60px;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logo .logo-text{color:#fff;font-size:18px;font-weight:600;margin-left:8px;letter-spacing:1px}
+.sidebar-logo .mdi{font-size:26px;color:#4facfe}
+.user-panel{padding:18px 20px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.user-panel .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:600;flex-shrink:0}
+.user-panel .user-info{margin-left:12px;overflow:hidden}
+.user-panel .user-info .uname{color:#eee;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-panel .user-info .urole{color:#8899aa;font-size:11px;margin-top:2px}
+
+/* 菜单 */
+.sidebar-menu{padding:8px 0}
+.nav-item{margin:0}
+.nav-link{display:flex;align-items:center;padding:11px 24px;color:#b8c7ce;font-size:13px;cursor:pointer;text-decoration:none;transition:all 0.2s;position:relative;white-space:nowrap}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.06);text-decoration:none}
+.nav-link.active{color:#fff;background:linear-gradient(90deg,rgba(79,172,254,0.2),transparent);border-left:3px solid #4facfe;padding-left:21px}
+.nav-link .mdi{font-size:17px;margin-right:8px;width:20px;text-align:center}
+.nav-link .arrow{position:absolute;right:20px;font-size:12px;transition:transform 0.2s}
+.nav-link .arrow.open{transform:rotate(90deg)}
+.submenu{max-height:0;overflow:hidden;transition:max-height 0.3s ease;background:rgba(0,0,0,0.15)}
+.submenu.open{max-height:600px}
+.submenu .nav-link{padding-left:52px;font-size:12px}
+
+/* 右键菜单 */
+.context-menu{position:fixed;background:#fff;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,0.15);z-index:9999;min-width:120px;padding:4px 0;display:none}
+.context-menu .ctx-item{padding:8px 16px;font-size:13px;color:#555;cursor:pointer;transition:background 0.15s}
+.context-menu .ctx-item:hover{background:#f0f7ff;color:#4facfe}
+
+/* 响应式 */
+@media(max-width:768px){
+  .sidebar{left:-240px;transition:left 0.3s}
+  .sidebar.mobile-show{left:0}
+  .topbar{left:0}
+  .tabs-bar{left:0}
+  .content-wrapper{left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="mdi mdi-shield-check"></span>
+    <span class="logo-text">CMS Admin</span>
+  </div>
+  <div class="user-panel">
+    <div class="avatar">${strutil.subString(user.nickName!=null?user.nickName:user.userName,0,1)}</div>
+    <div class="user-info">
+      <div class="uname">${user.nickName!=null?user.nickName:user.userName}</div>
+      <div class="urole">管理员</div>
+    </div>
+  </div>
+  <div class="sidebar-menu" id="sidebarMenu">
+    <% for(var menu in menus) { %>
+      <% if(menu.children != null && menu.children.~size > 0) { %>
+        <div class="nav-item">
+          <a class="nav-link has-submenu" onclick="toggleSubmenu(this)">
+            <span class="mdi ${menu.icon!=''?menu.icon:'mdi-folder'}"></span>
+            <span>${menu.menuName}</span>
+            <span class="arrow mdi mdi-chevron-right"></span>
+          </a>
+          <div class="submenu">
+            <% for(var child in menu.children) { %>
+              <a class="nav-link sub-link" onclick="loadPage('${child.path}','${child.menuName}')">
+                <span class="mdi ${child.icon!=''?child.icon:'mdi-file-document'}"></span>
+                <span>${child.menuName}</span>
+              </a>
+            <% } %>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="nav-item">
+          <a class="nav-link" onclick="loadPage('${menu.path}','${menu.menuName}')">
+            <span class="mdi ${menu.icon!=''?menu.icon:'mdi-file-document'}"></span>
+            <span>${menu.menuName}</span>
+          </a>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+
+<!-- 顶部导航 -->
+<div class="topbar" id="topbar">
+  <div class="topbar-left">
+    <span class="mdi mdi-menu" id="mobileMenuBtn" style="display:none;cursor:pointer;font-size:20px;margin-right:10px;color:#888" onclick="toggleMobileSidebar()"></span>
+    <div class="breadcrumb">
+      <span class="mdi mdi-home"></span>&nbsp;首页&nbsp;/&nbsp;<span id="breadcrumbTitle">仪表盘</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="user-name">${user.nickName!=null?user.nickName:user.userName}</span>
+    <span class="mdi mdi-bell-outline" title="消息"></span>
+    <span class="mdi mdi-fullscreen" title="全屏" onclick="toggleFullscreen()"></span>
+    <button class="btn-logout" onclick="doLogout()">退出</button>
+  </div>
+</div>
+
+<!-- 标签栏 -->
+<div class="tabs-bar" id="tabsBar">
+  <div class="tabs-scroll" id="tabsScroll">
+    <div class="tab-item home-tab active" data-path="/welcome" data-title="首页" onclick="switchTab(this)">
+      首页<span class="tab-close" onclick="event.stopPropagation();closeTab(this.parentElement)">&times;</span>
+    </div>
+  </div>
+  <span class="tabs-context-btn mdi mdi-chevron-down" onclick="showTabsContext(event)" title="标签操作"></span>
+</div>
+
+<!-- 内容区 -->
+<div class="content-wrapper">
+  <iframe id="contentIframe" src="/welcome" frameborder="0"></iframe>
+</div>
+
+<!-- 右键菜单 -->
+<div class="context-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="contextAction('refresh')">刷新当前</div>
+  <div class="ctx-item" onclick="contextAction('closeCurrent')">关闭当前</div>
+  <div class="ctx-item" onclick="contextAction('closeOthers')">关闭其他</div>
+  <div class="ctx-item" onclick="contextAction('closeAll')">关闭全部</div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script src="/static/lib/lyear/jquery.lyear.loading.js"></script>
+
+<script>
+// 全局标签数组: {path, title, active}
+var tabs = [{path: '/welcome', title: '首页', closable: false}];
+var activeTabIndex = 0;
+var ctxTarget = null;
+
+$(document).ready(function(){
+  // 移动端菜单按钮显示
+  if(window.innerWidth <= 768) {
+    $('#mobileMenuBtn').show();
+  }
+  // 点击内容区隐藏右键菜单
+  $(document).on('click', function(e){
+    if(!$(e.target).closest('#ctxMenu').length){
+      $('#ctxMenu').hide();
+    }
+  });
+  // 窗口大小变化
+  $(window).on('resize', function(){
+    if(window.innerWidth <= 768){
+      $('#mobileMenuBtn').show();
+    }else{
+      $('#mobileMenuBtn').hide();
+      $('#sidebar').removeClass('mobile-show');
+    }
+  });
+});
+
+// 加载页面
+function loadPage(path, title){
+  // 检查标签是否已存在
+  var existIdx = -1;
+  for(var i = 0; i < tabs.length; i++){
+    if(tabs[i].path === path){ existIdx = i; break; }
+  }
+  if(existIdx >= 0){
+    switchToTab(existIdx);
+    return;
+  }
+  // 创建新标签
+  tabs.push({path: path, title: title, closable: true});
+  activeTabIndex = tabs.length - 1;
+  renderTabs();
+  $('#contentIframe').attr('src', path);
+  $('#breadcrumbTitle').text(title);
+}
+
+// 切换标签
+function switchTab(el){
+  var path = $(el).data('path');
+  var idx = -1;
+  for(var i = 0; i < tabs.length; i++){
+    if(tabs[i].path === path){ idx = i; break; }
+  }
+  if(idx < 0) return;
+  switchToTab(idx);
+}
+
+function switchToTab(idx){
+  activeTabIndex = idx;
+  var tab = tabs[idx];
+  renderTabs();
+  $('#contentIframe').attr('src', tab.path);
+  $('#breadcrumbTitle').text(tab.title);
+}
+
+// 关闭标签
+function closeTab(el){
+  var path = $(el).data('path');
+  var idx = -1;
+  for(var i = 0; i < tabs.length; i++){
+    if(tabs[i].path === path){ idx = i; break; }
+  }
+  if(idx < 0 || !tabs[idx].closable) return;
+  tabs.splice(idx, 1);
+  if(activeTabIndex >= tabs.length){
+    activeTabIndex = tabs.length - 1;
+  }
+  if(activeTabIndex < 0) activeTabIndex = 0;
+  if(idx === activeTabIndex || activeTabIndex < idx){
+    // 切换到activeTabIndex
+  }
+  renderTabs();
+  $('#contentIframe').attr('src', tabs[activeTabIndex].path);
+  $('#breadcrumbTitle').text(tabs[activeTabIndex].title);
+}
+
+// 渲染标签栏
+function renderTabs(){
+  var html = '';
+  for(var i = 0; i < tabs.length; i++){
+    var t = tabs[i];
+    var cls = (i === activeTabIndex) ? ' active' : '';
+    var homeCls = !t.closable ? ' home-tab' : '';
+    var closeBtn = t.closable ? '<span class="tab-close">&times;</span>' : '';
+    html += '<div class="tab-item'+cls+homeCls+'" data-path="'+t.path+'" data-title="'+t.title+'" onclick="switchTab(this)" oncontextmenu="showTabContext(event,this)">'+t.title+closeBtn+'</div>';
+  }
+  $('#tabsScroll').html(html);
+  // 滚动到当前标签
+  setTimeout(function(){
+    var activeTab = $('#tabsScroll .tab-item.active');
+    if(activeTab.length){
+      var scrollLeft = activeTab.position().left + $('#tabsScroll').scrollLeft() - 50;
+      $('#tabsScroll').animate({scrollLeft: scrollLeft}, 200);
+    }
+  }, 50);
+}
+
+// 右键菜单 - 标签
+function showTabContext(e, el){
+  e.preventDefault();
+  ctxTarget = el;
+  var menu = $('#ctxMenu');
+  menu.css({left: e.clientX+'px', top: e.clientY+'px', display:'block'});
+  // 隐藏菜单在点击其他位置时
+  setTimeout(function(){
+    $(document).one('click', function(){ menu.hide(); });
+  }, 10);
+}
+
+// 右键菜单 - 标签栏按钮
+function showTabsContext(e){
+  e.stopPropagation();
+  ctxTarget = null;
+  var menu = $('#ctxMenu');
+  menu.css({left: e.clientX+'px', top: (e.clientY+10)+'px', display:'block'});
+  setTimeout(function(){
+    $(document).one('click', function(){ menu.hide(); });
+  }, 10);
+}
+
+// 右键操作
+function contextAction(action){
+  $('#ctxMenu').hide();
+  switch(action){
+    case 'refresh':
+      var src = $('#contentIframe').attr('src');
+      $('#contentIframe').attr('src', src);
+      break;
+    case 'closeCurrent':
+      if(ctxTarget){
+        closeTab(ctxTarget);
+      }else{
+        if(tabs[activeTabIndex] && tabs[activeTabIndex].closable){
+          tabs.splice(activeTabIndex, 1);
+          if(activeTabIndex >= tabs.length) activeTabIndex = tabs.length - 1;
+          renderTabs();
+          $('#contentIframe').attr('src', tabs[activeTabIndex].path);
+          $('#breadcrumbTitle').text(tabs[activeTabIndex].title);
+        }
+      }
+      break;
+    case 'closeOthers':
+      var keepPath = ctxTarget ? $(ctxTarget).data('path') : tabs[activeTabIndex].path;
+      var keepTitle = ctxTarget ? $(ctxTarget).data('title') : tabs[activeTabIndex].title;
+      tabs = tabs.filter(function(t){ return !t.closable || t.path === keepPath; });
+      activeTabIndex = 0;
+      for(var i = 0; i < tabs.length; i++){
+        if(tabs[i].path === keepPath){ activeTabIndex = i; break; }
+      }
+      renderTabs();
+      $('#contentIframe').attr('src', tabs[activeTabIndex].path);
+      $('#breadcrumbTitle').text(tabs[activeTabIndex].title);
+      break;
+    case 'closeAll':
+      tabs = tabs.filter(function(t){ return !t.closable; });
+      activeTabIndex = 0;
+      renderTabs();
+      $('#contentIframe').attr('src', tabs[0].path);
+      $('#breadcrumbTitle').text(tabs[0].title);
+      break;
+  }
+}
+
+// 菜单折叠展开
+function toggleSubmenu(el){
+  var $el = $(el);
+  var $sub = $el.siblings('.submenu');
+  var $arrow = $el.find('.arrow');
+  $sub.toggleClass('open');
+  $arrow.toggleClass('open');
+  // 激活当前菜单
+  $('.nav-link.active').removeClass('active');
+  $el.addClass('active');
+}
+
+// 移动端侧边栏
+function toggleMobileSidebar(){
+  $('#sidebar').toggleClass('mobile-show');
+}
+
+// 全屏切换
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  }else{
+    document.exitFullscreen();
+  }
+}
+
+// 退出登录
+function doLogout(){
+  layer.confirm('确定要退出登录吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    window.location.href = '/login';
+  });
+}
+</script>
+
+</body>
+</html>

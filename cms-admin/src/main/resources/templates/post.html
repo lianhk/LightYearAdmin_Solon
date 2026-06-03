@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.search-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.search-form .form-group{margin-bottom:0}
+.search-form label{font-size:13px;color:#666;margin-bottom:4px;display:block}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
+  </div>
+  <div class="section-body">
+    <form class="search-form" method="get" action="">
+      <div class="form-group">
+        <label>岗位编码</label>
+        <input type="text" class="form-control" name="postCode" placeholder="输入岗位编码" value="${postCode!''}" style="width:180px">
+      </div>
+      <div class="form-group">
+        <label>岗位名称</label>
+        <input type="text" class="form-control" name="postName" placeholder="输入岗位名称" value="${postName!''}" style="width:180px">
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-control" name="status" style="width:140px">
+          <option value="">全部</option>
+          <option value="0" ${status!''=='0'?'selected':''}>正常</option>
+          <option value="1" ${status!''=='1'?'selected':''}>停用</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn btn-primary" style="height:38px;padding:0 20px"><span class="mdi mdi-magnify"></span> 搜索</button>
+        <button type="reset" class="btn btn-default" style="height:38px;padding:0 16px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;margin-left:6px"><span class="mdi mdi-refresh"></span> 重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-briefcase"></span> 岗位列表</span>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button>
+  </div>
+  <div class="section-body" style="padding:0">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:60px">#</th>
+          <th>岗位编码</th>
+          <th>岗位名称</th>
+          <th>排序</th>
+          <th>状态</th>
+          <th>创建时间</th>
+          <th style="width:160px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(list != null && list.~size > 0) { %>
+          <% for(var item in list) { %>
+          <tr>
+            <td>${itemLP.index}</td>
+            <td>${item.postCode}</td>
+            <td>${item.postName}</td>
+            <td>${item.postSort!0}</td>
+            <td>
+              <% if(item.status == '0') { %>
+                <span class="badge badge-success">正常</span>
+              <% } else { %>
+                <span class="badge badge-danger">停用</span>
+              <% } %>
+            </td>
+            <td>${item.createTime!''}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openEdit('${item.postId}')"><span class="mdi mdi-pencil"></span></button>
+              <button class="btn btn-danger btn-sm" onclick="doDelete('${item.postId}')" style="background:#fa709a;border-color:#fa709a;color:#fff"><span class="mdi mdi-delete"></span></button>
+            </td>
+          </tr>
+          <% } %>
+        <% } else { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无数据</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">新增岗位</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPostId">
+        <div class="form-group">
+          <label>岗位编码</label>
+          <input type="text" class="form-control" id="postCode" placeholder="请输入岗位编码">
+        </div>
+        <div class="form-group">
+          <label>岗位名称</label>
+          <input type="text" class="form-control" id="postName" placeholder="请输入岗位名称">
+        </div>
+        <div class="form-group">
+          <label>排序</label>
+          <input type="number" class="form-control" id="postSort" value="0">
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="status">
+            <option value="0">正常</option>
+            <option value="1">停用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea class="form-control" id="remark" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var isEdit = false;
+
+function openAdd(){
+  isEdit = false;
+  $('#modalTitle').text('新增岗位');
+  $('#editPostId').val('');
+  $('#postCode').val('');
+  $('#postName').val('');
+  $('#postSort').val('0');
+  $('#status').val('0');
+  $('#remark').val('');
+  $('#formModal').modal('show');
+}
+
+function openEdit(postId){
+  isEdit = true;
+  $('#modalTitle').text('编辑岗位');
+  $.get('/system/post/detail?postId='+postId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editPostId').val(data.postId);
+      $('#postCode').val(data.postCode);
+      $('#postName').val(data.postName);
+      $('#postSort').val(data.postSort);
+      $('#status').val(data.status);
+      $('#remark').val(data.remark||'');
+      $('#formModal').modal('show');
+    }
+  });
+}
+
+function submitForm(){
+  var url = isEdit ? '/system/post/edit' : '/system/post/add';
+  var data = {
+    postId: $('#editPostId').val(),
+    postCode: $('#postCode').val(),
+    postName: $('#postName').val(),
+    postSort: $('#postSort').val(),
+    status: $('#status').val(),
+    remark: $('#remark').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#formModal').modal('hide');
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+function doDelete(postId){
+  layer.confirm('确定要删除该岗位吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/system/post/delete', {postId:postId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

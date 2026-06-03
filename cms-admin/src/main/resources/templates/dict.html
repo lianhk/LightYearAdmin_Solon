@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>字典管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.dict-layout{display:flex;gap:15px}
+.dict-type-panel{width:260px;flex-shrink:0;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden}
+.dict-type-list{list-style:none;padding:0;margin:0;max-height:500px;overflow-y:auto}
+.dict-type-list li{padding:11px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:13px;color:#555;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s}
+.dict-type-list li:hover{background:#f8fafc}
+.dict-type-list li.active{background:#eef5ff;color:#4facfe;border-left:3px solid #4facfe;padding-left:13px}
+.dict-type-list li .type-actions{display:none}
+.dict-type-list li:hover .type-actions{display:flex;gap:4px}
+.dict-type-list li .type-actions button{padding:2px 6px;font-size:11px;border:none;border-radius:3px;cursor:pointer}
+.dict-data-panel{flex:1;min-width:0}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-book-open"></span> 字典管理</span>
+  </div>
+</div>
+
+<div class="dict-layout">
+  <!-- 字典类型面板 -->
+  <div class="dict-type-panel">
+    <div class="section-header" style="background:#fafafa">
+      <span style="font-size:13px;font-weight:500;color:#333"><span class="mdi mdi-format-list-bulleted-type"></span> 字典类型</span>
+      <button class="btn btn-primary btn-sm" onclick="openTypeAdd()" style="padding:2px 8px;font-size:11px"><span class="mdi mdi-plus"></span></button>
+    </div>
+    <ul class="dict-type-list" id="dictTypeList">
+      <% if(typeList != null && typeList.~size > 0) { %>
+        <% for(var t in typeList) { %>
+        <li data-dict-type="${t.dictType}" onclick="selectType(this,'${t.dictType}')">
+          <span>${t.dictName}</span>
+          <span class="type-actions">
+            <button style="background:#4facfe;color:#fff" onclick="event.stopPropagation();openTypeEdit('${t.dictId}')" title="编辑"><span class="mdi mdi-pencil"></span></button>
+            <button style="background:#fa709a;color:#fff" onclick="event.stopPropagation();deleteType('${t.dictId}')" title="删除"><span class="mdi mdi-delete"></span></button>
+          </span>
+        </li>
+        <% } %>
+      <% } else { %>
+        <li style="color:#aaa;text-align:center;cursor:default">暂无字典类型</li>
+      <% } %>
+    </ul>
+  </div>
+
+  <!-- 字典数据面板 -->
+  <div class="dict-data-panel">
+    <div class="section" style="margin-bottom:0">
+      <div class="section-header">
+        <span style="font-size:14px;font-weight:500;color:#333" id="dataPanelTitle"><span class="mdi mdi-format-list-checks"></span> 字典数据 <span style="color:#aaa;font-size:12px;font-weight:400">(请选择左侧字典类型)</span></span>
+        <button class="btn btn-primary btn-sm" onclick="openDataAdd()"><span class="mdi mdi-plus"></span> 新增</button>
+      </div>
+      <div class="section-body" style="padding:0">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th style="width:60px">#</th>
+              <th>字典标签</th>
+              <th>字典键值</th>
+              <th>排序</th>
+              <th>样式</th>
+              <th>状态</th>
+              <th style="width:160px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="dictDataBody">
+            <% if(dataList != null && dataList.~size > 0) { %>
+              <% for(var d in dataList) { %>
+              <tr>
+                <td>${dLP.index}</td>
+                <td>${d.dictLabel}</td>
+                <td>${d.dictValue}</td>
+                <td>${d.dictSort!0}</td>
+                <td>${d.cssClass!''}</td>
+                <td>
+                  <% if(d.status == '0') { %>
+                    <span class="badge badge-success">正常</span>
+                  <% } else { %>
+                    <span class="badge badge-danger">停用</span>
+                  <% } %>
+                </td>
+                <td>
+                  <button class="btn btn-primary btn-sm" onclick="openDataEdit('${d.dictCode}')"><span class="mdi mdi-pencil"></span></button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteData('${d.dictCode}')" style="background:#fa709a;border-color:#fa709a;color:#fff"><span class="mdi mdi-delete"></span></button>
+                </td>
+              </tr>
+              <% } %>
+            <% } else { %>
+              <tr id="emptyRow"><td colspan="7" style="text-align:center;color:#aaa;padding:30px">请选择左侧字典类型查看数据</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字典类型弹窗 -->
+<div class="modal fade" id="typeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="typeModalTitle">新增字典类型</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editTypeId">
+        <div class="form-group">
+          <label>字典名称</label>
+          <input type="text" class="form-control" id="typeDictName" placeholder="请输入字典名称">
+        </div>
+        <div class="form-group">
+          <label>字典类型</label>
+          <input type="text" class="form-control" id="typeDictType" placeholder="如 sys_user_sex">
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="typeStatus">
+            <option value="0">正常</option>
+            <option value="1">停用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea class="form-control" id="typeRemark" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitType()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 字典数据弹窗 -->
+<div class="modal fade" id="dataModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dataModalTitle">新增字典数据</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editDataCode">
+        <div class="form-group">
+          <label>字典类型</label>
+          <input type="text" class="form-control" id="dataDictType" readonly>
+        </div>
+        <div class="form-group">
+          <label>字典标签</label>
+          <input type="text" class="form-control" id="dataDictLabel" placeholder="请输入字典标签">
+        </div>
+        <div class="form-group">
+          <label>字典键值</label>
+          <input type="text" class="form-control" id="dataDictValue" placeholder="请输入字典键值">
+        </div>
+        <div class="form-group">
+          <label>排序</label>
+          <input type="number" class="form-control" id="dataDictSort" value="0">
+        </div>
+        <div class="form-group">
+          <label>样式类名</label>
+          <input type="text" class="form-control" id="dataCssClass" placeholder="如 primary">
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="dataStatus">
+            <option value="0">正常</option>
+            <option value="1">停用</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitData()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var currentDictType = '';
+var isEditType = false;
+var isEditData = false;
+
+// ===== 字典类型操作 =====
+function selectType(el, dictType){
+  currentDictType = dictType;
+  $('#dictTypeList li').removeClass('active');
+  $(el).addClass('active');
+  loadDictData(dictType);
+}
+
+function loadDictTypeList(){
+  window.location.reload();
+}
+
+function openTypeAdd(){
+  isEditType = false;
+  $('#typeModalTitle').text('新增字典类型');
+  $('#editTypeId').val('');
+  $('#typeDictName').val('');
+  $('#typeDictType').val('');
+  $('#typeStatus').val('0');
+  $('#typeRemark').val('');
+  $('#typeModal').modal('show');
+}
+
+function openTypeEdit(dictId){
+  isEditType = true;
+  $('#typeModalTitle').text('编辑字典类型');
+  $.get('/system/dict/type/detail?dictId='+dictId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editTypeId').val(data.dictId);
+      $('#typeDictName').val(data.dictName);
+      $('#typeDictType').val(data.dictType);
+      $('#typeStatus').val(data.status);
+      $('#typeRemark').val(data.remark||'');
+      $('#typeModal').modal('show');
+    }
+  });
+}
+
+function submitType(){
+  var url = isEditType ? '/system/dict/type/edit' : '/system/dict/type/add';
+  var data = {
+    dictId: $('#editTypeId').val(),
+    dictName: $('#typeDictName').val(),
+    dictType: $('#typeDictType').val(),
+    status: $('#typeStatus').val(),
+    remark: $('#typeRemark').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#typeModal').modal('hide');
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+function deleteType(dictId){
+  layer.confirm('确定要删除该字典类型及其所有数据吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/system/dict/type/delete', {dictId:dictId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+
+// ===== 字典数据操作 =====
+function loadDictData(dictType){
+  $.get('/system/dict/data/list?dictType='+dictType, function(res){
+    if(res.code === 0){
+      var list = res.data || [];
+      var html = '';
+      for(var i = 0; i < list.length; i++){
+        var d = list[i];
+        var statusBadge = d.status == '0' ? '<span class="badge badge-success">正常</span>' : '<span class="badge badge-danger">停用</span>';
+        html += '<tr>';
+        html += '<td>'+(i+1)+'</td>';
+        html += '<td>'+d.dictLabel+'</td>';
+        html += '<td>'+d.dictValue+'</td>';
+        html += '<td>'+(d.dictSort||0)+'</td>';
+        html += '<td>'+(d.cssClass||'')+'</td>';
+        html += '<td>'+statusBadge+'</td>';
+        html += '<td>';
+        html += '<button class="btn btn-primary btn-sm" onclick="openDataEdit(\''+d.dictCode+'\')"><span class="mdi mdi-pencil"></span></button> ';
+        html += '<button class="btn btn-danger btn-sm" onclick="deleteData(\''+d.dictCode+'\')" style="background:#fa709a;border-color:#fa709a;color:#fff"><span class="mdi mdi-delete"></span></button>';
+        html += '</td></tr>';
+      }
+      if(list.length === 0){
+        html = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无数据</td></tr>';
+      }
+      $('#dictDataBody').html(html);
+    }
+  });
+}
+
+function openDataAdd(){
+  if(!currentDictType){ layer.msg('请先选择字典类型',{icon:2}); return; }
+  isEditData = false;
+  $('#dataModalTitle').text('新增字典数据');
+  $('#editDataCode').val('');
+  $('#dataDictType').val(currentDictType);
+  $('#dataDictLabel').val('');
+  $('#dataDictValue').val('');
+  $('#dataDictSort').val('0');
+  $('#dataCssClass').val('');
+  $('#dataStatus').val('0');
+  $('#dataModal').modal('show');
+}
+
+function openDataEdit(dictCode){
+  isEditData = true;
+  $('#dataModalTitle').text('编辑字典数据');
+  $.get('/system/dict/data/detail?dictCode='+dictCode, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editDataCode').val(data.dictCode);
+      $('#dataDictType').val(data.dictType);
+      $('#dataDictLabel').val(data.dictLabel);
+      $('#dataDictValue').val(data.dictValue);
+      $('#dataDictSort').val(data.dictSort||0);
+      $('#dataCssClass').val(data.cssClass||'');
+      $('#dataStatus').val(data.status);
+      $('#dataModal').modal('show');
+    }
+  });
+}
+
+function submitData(){
+  var url = isEditData ? '/system/dict/data/edit' : '/system/dict/data/add';
+  var data = {
+    dictCode: $('#editDataCode').val(),
+    dictType: $('#dataDictType').val(),
+    dictLabel: $('#dataDictLabel').val(),
+    dictValue: $('#dataDictValue').val(),
+    dictSort: $('#dataDictSort').val(),
+    cssClass: $('#dataCssClass').val(),
+    status: $('#dataStatus').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#dataModal').modal('hide');
+      if(currentDictType) loadDictData(currentDictType);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+function deleteData(dictCode){
+  layer.confirm('确定要删除该字典数据吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/system/dict/data/delete', {dictCode:dictCode}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        if(currentDictType) loadDictData(currentDictType);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

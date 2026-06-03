@@ -333,20 +333,20 @@ INSERT INTO sys_menu VALUES (3,   '系统工具', 0,  3, 'tool',             NUL
 INSERT INTO sys_menu VALUES (100, 'CMS管理',  0,  4, 'cms',              NULL,  '', '', 1, 0, 'M', '0', '0', '', 'mdi mdi-web',               'admin', '2024-01-01 00:00:00', '', 'CMS内容管理');
 
 -- 系统管理子菜单
-INSERT INTO sys_menu VALUES (10,  '用户管理', 1, 1, 'user',       'page/user.html',       '', '', 1, 0, 'C', '0', '0', 'system:user:list',     'mdi mdi-account-multiple',   'admin', '2024-01-01 00:00:00', '', '用户管理菜单');
-INSERT INTO sys_menu VALUES (11,  '角色管理', 1, 2, 'role',       'page/role.html',       '', '', 1, 0, 'C', '0', '0', 'system:role:list',     'mdi mdi-account-supervisor', 'admin', '2024-01-01 00:00:00', '', '角色管理菜单');
-INSERT INTO sys_menu VALUES (12,  '菜单管理', 1, 3, 'menu',       'page/menu.html',       '', '', 1, 0, 'C', '0', '0', 'system:menu:list',     'mdi mdi-menu',               'admin', '2024-01-01 00:00:00', '', '菜单管理菜单');
-INSERT INTO sys_menu VALUES (13,  '部门管理', 1, 4, 'dept',       'page/dept.html',       '', '', 1, 0, 'C', '0', '0', 'system:dept:list',     'mdi mdi-file-tree',          'admin', '2024-01-01 00:00:00', '', '部门管理菜单');
-INSERT INTO sys_menu VALUES (14,  '字典管理', 1, 5, 'dict',       'page/dict.html',       '', '', 1, 0, 'C', '0', '0', 'system:dict:list',     'mdi mdi-book-open-page-variant', 'admin', '2024-01-01 00:00:00', '', '字典管理菜单');
-INSERT INTO sys_menu VALUES (15,  '参数设置', 1, 6, 'config',     'page/config.html',     '', '', 1, 0, 'C', '0', '0', 'system:config:list',   'mdi mdi-cog',                'admin', '2024-01-01 00:00:00', '', '参数设置菜单');
-INSERT INTO sys_menu VALUES (16,  '通知公告', 1, 7, 'notice',     'page/notice.html',     '', '', 1, 0, 'C', '0', '0', 'system:notice:list',   'mdi mdi-bell-outline',       'admin', '2024-01-01 00:00:00', '', '通知公告菜单');
-INSERT INTO sys_menu VALUES (17,  '岗位管理', 1, 8, 'post',       'page/post.html',       '', '', 1, 0, 'C', '0', '0', 'system:post:list',     'mdi mdi-badge-account-horizontal', 'admin', '2024-01-01 00:00:00', '', '岗位管理菜单');
+INSERT INTO sys_menu VALUES (10,  '用户管理', 1, 1, 'user',       '/system/user',       '', '', 1, 0, 'C', '0', '0', 'system:user:list',     'mdi mdi-account-multiple',   'admin', '2024-01-01 00:00:00', '', '用户管理菜单');
+INSERT INTO sys_menu VALUES (11,  '角色管理', 1, 2, 'role',       '/system/role',       '', '', 1, 0, 'C', '0', '0', 'system:role:list',     'mdi mdi-account-supervisor', 'admin', '2024-01-01 00:00:00', '', '角色管理菜单');
+INSERT INTO sys_menu VALUES (12,  '菜单管理', 1, 3, 'menu',       '/system/menu',       '', '', 1, 0, 'C', '0', '0', 'system:menu:list',     'mdi mdi-menu',               'admin', '2024-01-01 00:00:00', '', '菜单管理菜单');
+INSERT INTO sys_menu VALUES (13,  '部门管理', 1, 4, 'dept',       '/system/dept',       '', '', 1, 0, 'C', '0', '0', 'system:dept:list',     'mdi mdi-file-tree',          'admin', '2024-01-01 00:00:00', '', '部门管理菜单');
+INSERT INTO sys_menu VALUES (14,  '字典管理', 1, 5, 'dict',       '/system/dict',       '', '', 1, 0, 'C', '0', '0', 'system:dict:list',     'mdi mdi-book-open-page-variant', 'admin', '2024-01-01 00:00:00', '', '字典管理菜单');
+INSERT INTO sys_menu VALUES (15,  '参数设置', 1, 6, 'config',     '/system/config',     '', '', 1, 0, 'C', '0', '0', 'system:config:list',   'mdi mdi-cog',                'admin', '2024-01-01 00:00:00', '', '参数设置菜单');
+INSERT INTO sys_menu VALUES (16,  '通知公告', 1, 7, 'notice',     '/system/notice',     '', '', 1, 0, 'C', '0', '0', 'system:notice:list',   'mdi mdi-bell-outline',       'admin', '2024-01-01 00:00:00', '', '通知公告菜单');
+INSERT INTO sys_menu VALUES (17,  '岗位管理', 1, 8, 'post',       '/system/post',       '', '', 1, 0, 'C', '0', '0', 'system:post:list',     'mdi mdi-badge-account-horizontal', 'admin', '2024-01-01 00:00:00', '', '岗位管理菜单');
 
 -- 系统监控子菜单
-INSERT INTO sys_menu VALUES (20,  '操作日志', 2, 1, 'operlog',    'page/operlog.html',    '', '', 1, 0, 'C', '0', '0', 'monitor:operlog:list', 'mdi mdi-file-document-outline', 'admin', '2024-01-01 00:00:00', '', '操作日志菜单');
-INSERT INTO sys_menu VALUES (21,  '登录日志', 2, 2, 'logininfor', 'page/logininfor.html', '', '', 1, 0, 'C', '0', '0', 'monitor:logininfor:list', 'mdi mdi-login-variant',    'admin', '2024-01-01 00:00:00', '', '登录日志菜单');
-INSERT INTO sys_menu VALUES (22,  '在线用户', 2, 3, 'online',     'page/online.html',     '', '', 1, 0, 'C', '0', '0', 'monitor:online:list',   'mdi mdi-account-check',      'admin', '2024-01-01 00:00:00', '', '在线用户菜单');
-INSERT INTO sys_menu VALUES (23,  '服务监控', 2, 4, 'server',     'page/server.html',     '', '', 1, 0, 'C', '0', '0', 'monitor:server:list',   'mdi mdi-server',             'admin', '2024-01-01 00:00:00', '', '服务监控菜单');
+INSERT INTO sys_menu VALUES (20,  '操作日志', 2, 1, 'operlog',    '/monitor/operlog',    '', '', 1, 0, 'C', '0', '0', 'monitor:operlog:list', 'mdi mdi-file-document-outline', 'admin', '2024-01-01 00:00:00', '', '操作日志菜单');
+INSERT INTO sys_menu VALUES (21,  '登录日志', 2, 2, 'logininfor', '/monitor/logininfor', '', '', 1, 0, 'C', '0', '0', 'monitor:logininfor:list', 'mdi mdi-login-variant',    'admin', '2024-01-01 00:00:00', '', '登录日志菜单');
+INSERT INTO sys_menu VALUES (22,  '在线用户', 2, 3, 'online',     '/monitor/online',     '', '', 1, 0, 'C', '0', '0', 'monitor:online:list',   'mdi mdi-account-check',      'admin', '2024-01-01 00:00:00', '', '在线用户菜单');
+INSERT INTO sys_menu VALUES (23,  '服务监控', 2, 4, 'server',     '/monitor/server',     '', '', 1, 0, 'C', '0', '0', 'monitor:server:list',   'mdi mdi-server',             'admin', '2024-01-01 00:00:00', '', '服务监控菜单');
 
 -- 用户管理按钮权限
 INSERT INTO sys_menu VALUES (1001, '用户查询', 10, 1, '', '', '', '', 1, 0, 'F', '0', '0', 'system:user:query',  '#', 'admin', '2024-01-01 00:00:00', '', '');

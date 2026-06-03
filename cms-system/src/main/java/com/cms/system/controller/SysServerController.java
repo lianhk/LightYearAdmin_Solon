@@ -1,11 +1,10 @@
 package com.cms.system.controller;
 
-import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
 import org.noear.solon.annotation.Controller;
-import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Get;
+import org.noear.solon.core.handle.Context;
 
 import java.lang.management.*;
 import java.text.DecimalFormat;
@@ -20,14 +19,13 @@ public class SysServerController extends BaseController {
 
     @Get
     @Mapping
-    public AjaxResult getInfo() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("cpu", getCpuInfo());
-        result.put("mem", getMemInfo());
-        result.put("jvm", getJvmInfo());
-        result.put("sys", getSysInfo());
-        result.put("sysFiles", getSysFiles());
-        return success(result);
+    public void page(Context ctx) {
+        ctx.attrSet("cpu", getCpuInfo());
+        ctx.attrSet("mem", getMemInfo());
+        ctx.attrSet("jvm", getJvmInfo());
+        ctx.attrSet("sys", getSysInfo());
+        ctx.attrSet("sysFiles", getSysFiles());
+        ctx.render("server.html");
     }
 
     private Map<String, Object> getCpuInfo() {

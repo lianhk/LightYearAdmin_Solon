@@ -24,6 +24,10 @@ beetlsql.db:
   minIdle: 5
   maxWait: 60000
 
-# JWT Configuration
-jwt.secret: cms-scaffold-jwt-secret-key-2024
-jwt.expiration: 7200000
+# Beetl Template Configuration
+beetl:
+  templatesPath: "templates/"
+
+# Session Configuration
+server.session.timeout: 7200
+server.session.state.jwt: "cms-scaffold-session-key-2024"

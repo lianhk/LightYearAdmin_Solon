@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务监控</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+
+/* 横向卡片 */
+.cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:15px}
+.stat-card{background:#fff;border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.stat-card .card-icon{font-size:28px;margin-bottom:6px}
+.stat-card .card-icon.cpu{color:#fa709a}
+.stat-card .card-icon.mem{color:#4facfe}
+.stat-card .card-icon.jvm{color:#43e97b}
+.stat-card .card-icon.disk{color:#f39c12}
+.stat-card .card-title{font-size:13px;color:#888;margin-bottom:8px}
+.stat-card .card-value{font-size:28px;font-weight:700;color:#333}
+.stat-card .card-sub{font-size:12px;color:#aaa;margin-top:4px}
+
+/* 详细信息区块 */
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;font-size:14px;font-weight:500;color:#333}
+.section-body{padding:15px}
+
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.info-item{display:flex;padding:8px 12px;background:#fafafa;border-radius:4px;font-size:13px}
+.info-item .info-label{color:#888;min-width:100px}
+.info-item .info-value{color:#333}
+.progress-wrapper{margin-top:8px}
+.progress-wrapper .prog-label{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px}
+.progress{height:8px;border-radius:4px;background:#eef0f2}
+.progress-bar{border-radius:4px}
+
+/* 磁盘表格 */
+.disk-table{width:100%;font-size:13px}
+.disk-table th,.disk-table td{padding:8px 12px;border-bottom:1px solid #f5f5f5}
+.disk-table th{background:#fafafa;color:#555;font-weight:500}
+
+@media(max-width:768px){
+  .cards-row{grid-template-columns:repeat(2,1fr)}
+  .info-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- 统计卡片 -->
+<div class="cards-row">
+  <div class="stat-card">
+    <div class="card-icon cpu"><span class="mdi mdi-cpu-64-bit"></span></div>
+    <div class="card-title">CPU使用率</div>
+    <div class="card-value">${cpu.used!0}%</div>
+    <div class="card-sub">核心数: ${cpu.cpuNum!'-'}</div>
+  </div>
+  <div class="stat-card">
+    <div class="card-icon mem"><span class="mdi mdi-memory"></span></div>
+    <div class="card-title">内存使用率</div>
+    <div class="card-value">${mem.usage!0}%</div>
+    <div class="card-sub">${mem.used!'-'} / ${mem.total!'-'}</div>
+  </div>
+  <div class="stat-card">
+    <div class="card-icon jvm"><span class="mdi mdi-coffee"></span></div>
+    <div class="card-title">JVM内存</div>
+    <div class="card-value">${jvm.usage!0}%</div>
+    <div class="card-sub">${jvm.used!'-'} / ${jvm.total!'-'}</div>
+  </div>
+  <div class="stat-card">
+    <div class="card-icon disk"><span class="mdi mdi-harddisk"></span></div>
+    <div class="card-title">磁盘使用率</div>
+    <div class="card-value">${(sysFiles!=null&&sysFiles.~size>0)?sysFiles[0].usage:0}%</div>
+    <div class="card-sub">系统盘</div>
+  </div>
+</div>
+
+<!-- CPU详情 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-cpu-64-bit" style="color:#fa709a;margin-right:4px"></span> CPU 信息</div>
+  <div class="section-body">
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">核心数</span><span class="info-value">${cpu.cpuNum!'-'}</span></div>
+      <div class="info-item"><span class="info-label">用户使用率</span><span class="info-value">${cpu.used!0}%</span></div>
+      <div class="info-item"><span class="info-label">系统使用率</span><span class="info-value">${cpu.sys!0}%</span></div>
+      <div class="info-item"><span class="info-label">当前空闲率</span><span class="info-value">${cpu.free!0}%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 内存详情 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-memory" style="color:#4facfe;margin-right:4px"></span> 内存信息</div>
+  <div class="section-body">
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">总内存</span><span class="info-value">${mem.total!'-'}</span></div>
+      <div class="info-item"><span class="info-label">已用内存</span><span class="info-value">${mem.used!'-'}</span></div>
+      <div class="info-item"><span class="info-label">剩余内存</span><span class="info-value">${mem.free!'-'}</span></div>
+      <div class="info-item"><span class="info-label">使用率</span><span class="info-value" style="color:#4facfe;font-weight:600">${mem.usage!0}%</span></div>
+    </div>
+    <div class="progress-wrapper">
+      <div class="prog-label"><span>内存使用率</span><span>${mem.usage!0}%</span></div>
+      <div class="progress"><div class="progress-bar" style="width:${mem.usage!0}%;background:linear-gradient(90deg,#4facfe,#00f2fe)"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- JVM详情 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-coffee" style="color:#43e97b;margin-right:4px"></span> JVM 信息</div>
+  <div class="section-body">
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">JVM总内存</span><span class="info-value">${jvm.total!'-'}</span></div>
+      <div class="info-item"><span class="info-label">JVM已用</span><span class="info-value">${jvm.used!'-'}</span></div>
+      <div class="info-item"><span class="info-label">JVM空闲</span><span class="info-value">${jvm.free!'-'}</span></div>
+      <div class="info-item"><span class="info-label">JDK版本</span><span class="info-value">${jvm.version!''}</span></div>
+      <div class="info-item"><span class="info-label">JDK路径</span><span class="info-value" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${jvm.home!''}</span></div>
+      <div class="info-item"><span class="info-label">JVM使用率</span><span class="info-value" style="color:#43e97b;font-weight:600">${jvm.usage!0}%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 服务器信息 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-server" style="color:#f39c12;margin-right:4px"></span> 服务器信息</div>
+  <div class="section-body">
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">服务器名称</span><span class="info-value">${sys.computerName!''}</span></div>
+      <div class="info-item"><span class="info-label">操作系统</span><span class="info-value">${sys.osName!''}</span></div>
+      <div class="info-item"><span class="info-label">系统架构</span><span class="info-value">${sys.osArch!''}</span></div>
+      <div class="info-item"><span class="info-label">服务器IP</span><span class="info-value">${sys.computerIp!''}</span></div>
+      <div class="info-item"><span class="info-label">项目路径</span><span class="info-value" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sys.userDir!''}</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 磁盘状态 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-harddisk" style="color:#f39c12;margin-right:4px"></span> 磁盘状态</div>
+  <div class="section-body" style="padding:0">
+    <table class="disk-table" style="margin:0">
+      <thead>
+        <tr>
+          <th>盘符</th>
+          <th>文件系统</th>
+          <th>总大小</th>
+          <th>已用</th>
+          <th>可用</th>
+          <th style="width:160px">使用率</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(sysFiles != null && sysFiles.~size > 0) { %>
+          <% for(var f in sysFiles) { %>
+          <tr>
+            <td>${f.dirName!''}</td>
+            <td>${f.sysTypeName!''}</td>
+            <td>${f.total!''}</td>
+            <td>${f.used!''}</td>
+            <td>${f.free!''}</td>
+            <td>
+              <div class="progress" style="height:6px;margin-bottom:2px"><div class="progress-bar" style="width:${f.usage!0}%;background:${f.usage>80?'#fa709a':f.usage>50?'#f39c12':'#43e97b'}"></div></div>
+              <span style="font-size:11px;color:#888">${f.usage!0}%</span>
+            </td>
+          </tr>
+          <% } %>
+        <% } else { %>
+          <tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">暂无磁盘信息</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+</body>
+</html>

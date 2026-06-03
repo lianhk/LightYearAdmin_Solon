@@ -2,7 +2,6 @@ package com.cms.system.controller;
 
 import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
-import com.cms.common.core.TableDataInfo;
 import com.cms.system.domain.SysConfig;
 import com.cms.system.service.ISysConfigService;
 import org.noear.solon.annotation.Controller;
@@ -10,8 +9,6 @@ import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Post;
 import org.noear.solon.annotation.Get;
-import org.noear.solon.annotation.Delete;
-import org.noear.solon.annotation.Put;
 import org.noear.solon.core.handle.Context;
 
 import java.util.List;
@@ -24,49 +21,37 @@ public class SysConfigController extends BaseController {
     private ISysConfigService configService;
 
     @Get
-    @Mapping("/list")
-    public TableDataInfo list(SysConfig config) {
-        List<SysConfig> list = configService.selectConfigList(config);
-        return getDataTable(list, list.size());
-    }
-
-    @Get
-    @Mapping("/configKey/{configKey}")
-    public AjaxResult getConfigKey(String configKey) {
-        String value = configService.selectConfigByKey(configKey);
-        return success(value);
-    }
-
-    @Get
-    @Mapping("/{configId}")
-    public AjaxResult getInfo(Long configId) {
-        return success(configService.selectConfigById(configId));
+    @Mapping
+    public void page(Context ctx) {
+        SysConfig search = new SysConfig();
+        String configName = ctx.param("configName");
+        if (configName != null && !configName.isEmpty()) search.setConfigName(configName);
+        String configKey = ctx.param("configKey");
+        if (configKey != null && !configKey.isEmpty()) search.setConfigKey(configKey);
+        ctx.attrSet("list", configService.selectConfigList(search));
+        ctx.render("config.html");
     }
 
     @Post
-    @Mapping
-    public AjaxResult add(SysConfig config) {
+    @Mapping("/add")
+    public AjaxResult add(Context ctx, SysConfig config) {
         if (!configService.checkConfigKeyUnique(config.getConfigKey())) {
             return error("参数键名已存在");
         }
-        config.setCreateBy(getLoginUsername());
+        config.setCreateBy(ctx.session("userName"));
         return configService.insertConfig(config) > 0 ? success() : error();
     }
 
-    @Put
-    @Mapping
-    public AjaxResult edit(SysConfig config) {
-        config.setUpdateBy(getLoginUsername());
+    @Post
+    @Mapping("/edit")
+    public AjaxResult edit(Context ctx, SysConfig config) {
+        config.setUpdateBy(ctx.session("userName"));
         return configService.updateConfig(config) > 0 ? success() : error();
     }
 
-    @Delete
-    @Mapping("/{configIds}")
-    public AjaxResult remove(Long[] configIds) {
+    @Post
+    @Mapping("/delete")
+    public AjaxResult remove(Context ctx, Long[] configIds) {
         return configService.deleteConfigByIds(configIds) > 0 ? success() : error();
-    }
-
-    private String getLoginUsername() {
-        return Context.current().attr("username");
     }
 }

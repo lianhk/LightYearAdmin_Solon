@@ -2,7 +2,6 @@ package com.cms.system.controller;
 
 import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
-import com.cms.common.core.TableDataInfo;
 import com.cms.system.domain.SysNotice;
 import com.cms.system.service.ISysNoticeService;
 import org.noear.solon.annotation.Controller;
@@ -10,8 +9,6 @@ import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Post;
 import org.noear.solon.annotation.Get;
-import org.noear.solon.annotation.Delete;
-import org.noear.solon.annotation.Put;
 import org.noear.solon.core.handle.Context;
 
 import java.util.List;
@@ -24,39 +21,34 @@ public class SysNoticeController extends BaseController {
     private ISysNoticeService noticeService;
 
     @Get
-    @Mapping("/list")
-    public TableDataInfo list(SysNotice notice) {
-        List<SysNotice> list = noticeService.selectNoticeList(notice);
-        return getDataTable(list, list.size());
-    }
-
-    @Get
-    @Mapping("/{noticeId}")
-    public AjaxResult getInfo(Long noticeId) {
-        return success(noticeService.selectNoticeById(noticeId));
+    @Mapping
+    public void page(Context ctx) {
+        SysNotice search = new SysNotice();
+        String noticeTitle = ctx.param("noticeTitle");
+        if (noticeTitle != null && !noticeTitle.isEmpty()) search.setNoticeTitle(noticeTitle);
+        String noticeType = ctx.param("noticeType");
+        if (noticeType != null && !noticeType.isEmpty()) search.setNoticeType(noticeType);
+        ctx.attrSet("list", noticeService.selectNoticeList(search));
+        ctx.render("notice.html");
     }
 
     @Post
-    @Mapping
-    public AjaxResult add(SysNotice notice) {
-        notice.setCreateBy(getLoginUsername());
+    @Mapping("/add")
+    public AjaxResult add(Context ctx, SysNotice notice) {
+        notice.setCreateBy(ctx.session("userName"));
         return noticeService.insertNotice(notice) > 0 ? success() : error();
     }
 
-    @Put
-    @Mapping
-    public AjaxResult edit(SysNotice notice) {
-        notice.setUpdateBy(getLoginUsername());
+    @Post
+    @Mapping("/edit")
+    public AjaxResult edit(Context ctx, SysNotice notice) {
+        notice.setUpdateBy(ctx.session("userName"));
         return noticeService.updateNotice(notice) > 0 ? success() : error();
     }
 
-    @Delete
-    @Mapping("/{noticeIds}")
-    public AjaxResult remove(Long[] noticeIds) {
+    @Post
+    @Mapping("/delete")
+    public AjaxResult remove(Context ctx, Long[] noticeIds) {
         return noticeService.deleteNoticeByIds(noticeIds) > 0 ? success() : error();
-    }
-
-    private String getLoginUsername() {
-        return Context.current().attr("username");
     }
 }

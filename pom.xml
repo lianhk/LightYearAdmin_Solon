@@ -56,6 +56,13 @@
                 <version>${solon.version}</version>
             </dependency>
 
+            <!-- Beetl View Rendering -->
+            <dependency>
+                <groupId>org.noear</groupId>
+                <artifactId>beetl-solon-plugin</artifactId>
+                <version>${solon.version}</version>
+            </dependency>
+
             <!-- JWT -->
             <dependency>
                 <groupId>com.auth0</groupId>

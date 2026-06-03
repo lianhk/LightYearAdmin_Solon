@@ -2,8 +2,6 @@ package com.cms.system.controller;
 
 import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
-import com.cms.common.core.TableDataInfo;
-import com.cms.common.core.UserConstants;
 import com.cms.system.domain.SysUser;
 import com.cms.system.service.ISysUserService;
 import org.noear.solon.annotation.Controller;
@@ -11,8 +9,6 @@ import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Post;
 import org.noear.solon.annotation.Get;
-import org.noear.solon.annotation.Delete;
-import org.noear.solon.annotation.Put;
 import org.noear.solon.core.handle.Context;
 
 import java.util.List;
@@ -25,65 +21,54 @@ public class SysUserController extends BaseController {
     private ISysUserService userService;
 
     @Get
-    @Mapping("/list")
-    public TableDataInfo list(SysUser user) {
-        List<SysUser> list = userService.selectUserList(user);
-        return getDataTable(list, list.size());
-    }
-
-    @Get
-    @Mapping("/{userId}")
-    public AjaxResult getInfo(Long userId) {
-        SysUser user = userService.selectUserById(userId);
-        user.setPassword(null);
-        return success(user);
+    @Mapping
+    public void page(Context ctx) {
+        SysUser search = new SysUser();
+        String userName = ctx.param("userName");
+        if (userName != null && !userName.isEmpty()) search.setUserName(userName);
+        String status = ctx.param("status");
+        if (status != null && !status.isEmpty()) search.setStatus(status);
+        String phoneNumber = ctx.param("phoneNumber");
+        if (phoneNumber != null && !phoneNumber.isEmpty()) search.setPhoneNumber(phoneNumber);
+        ctx.attrSet("list", userService.selectUserList(search));
+        ctx.render("user.html");
     }
 
     @Post
-    @Mapping
-    public AjaxResult add(SysUser user) {
+    @Mapping("/add")
+    public AjaxResult add(Context ctx, SysUser user) {
         if (!userService.checkUserNameUnique(user.getUserName())) {
             return error("用户名已存在");
         }
-        user.setCreateBy(getLoginUsername());
+        user.setCreateBy(ctx.session("userName"));
         int rows = userService.insertUser(user);
-        // 保存角色关联
         if (user.getRoleIds() != null && user.getRoleIds().length > 0) {
             userService.insertUserRole(user.getUserId(), user.getRoleIds());
         }
         return rows > 0 ? success() : error();
     }
 
-    @Put
-    @Mapping
-    public AjaxResult edit(SysUser user) {
-        user.setUpdateBy(getLoginUsername());
+    @Post
+    @Mapping("/edit")
+    public AjaxResult edit(Context ctx, SysUser user) {
+        user.setUpdateBy(ctx.session("userName"));
         int rows = userService.updateUser(user);
-        // 保存角色关联
         if (user.getRoleIds() != null) {
             userService.insertUserRole(user.getUserId(), user.getRoleIds());
         }
         return rows > 0 ? success() : error();
     }
 
-    @Delete
-    @Mapping("/{userIds}")
-    public AjaxResult remove(Long[] userIds) {
+    @Post
+    @Mapping("/delete")
+    public AjaxResult remove(Context ctx, Long[] userIds) {
         return userService.deleteUserByIds(userIds) > 0 ? success() : error();
     }
 
-    @Put
+    @Post
     @Mapping("/resetPwd")
-    public AjaxResult resetPwd(SysUser user) {
-        user.setUpdateBy(getLoginUsername());
+    public AjaxResult resetPwd(Context ctx, SysUser user) {
+        user.setUpdateBy(ctx.session("userName"));
         return userService.resetPwd(user) > 0 ? success() : error();
-    }
-
-    /**
-     * 获取当前登录用户名
-     */
-    private String getLoginUsername() {
-        Context ctx = Context.current();
-        return ctx.attr("username");
     }
 }

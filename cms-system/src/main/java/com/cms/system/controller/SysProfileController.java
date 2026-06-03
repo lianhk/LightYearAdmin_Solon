@@ -9,11 +9,8 @@ import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Get;
-import org.noear.solon.annotation.Put;
+import org.noear.solon.annotation.Post;
 import org.noear.solon.core.handle.Context;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Controller
 @Mapping("/system/user/profile")
@@ -25,25 +22,25 @@ public class SysProfileController extends BaseController {
     @Get
     @Mapping
     public AjaxResult profile(Context ctx) {
-        Long userId = ctx.attr("userId");
+        Long userId = ctx.session("userId");
         SysUser user = userService.selectUserById(userId);
         user.setPassword(null);
         return success(user);
     }
 
-    @Put
+    @Post
     @Mapping
     public AjaxResult updateProfile(Context ctx, SysUser user) {
-        Long userId = ctx.attr("userId");
+        Long userId = ctx.session("userId");
         user.setUserId(userId);
-        user.setUpdateBy(ctx.attr("username"));
+        user.setUpdateBy(ctx.session("userName"));
         return userService.updateUserProfile(user) > 0 ? success() : error();
     }
 
-    @Put
+    @Post
     @Mapping("/updatePwd")
     public AjaxResult updatePwd(Context ctx, String oldPassword, String newPassword) {
-        Long userId = ctx.attr("userId");
+        Long userId = ctx.session("userId");
         SysUser user = userService.selectUserById(userId);
 
         if (!SecureUtil.md5(oldPassword).equals(user.getPassword())) {
@@ -51,7 +48,7 @@ public class SysProfileController extends BaseController {
         }
 
         user.setPassword(SecureUtil.md5(newPassword));
-        user.setUpdateBy(ctx.attr("username"));
+        user.setUpdateBy(ctx.session("userName"));
         return userService.resetPwd(user) > 0 ? success() : error();
     }
 }

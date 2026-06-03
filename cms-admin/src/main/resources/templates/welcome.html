@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首页</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:20px}
+.welcome-bar{display:flex;align-items:center;margin-bottom:20px}
+.welcome-bar .avatar-circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:600;margin-right:14px}
+.welcome-bar .greeting{font-size:16px;color:#555}
+.welcome-bar .greeting strong{color:#333;font-size:18px}
+.welcome-bar .time-text{font-size:13px;color:#aaa;margin-top:4px}
+
+/* 统计卡片 */
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);display:flex;align-items:center;transition:transform 0.2s,box-shadow 0.2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.stat-card .icon-wrap{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;flex-shrink:0}
+.stat-card .icon-wrap.blue{background:linear-gradient(135deg,#4facfe,#00f2fe)}
+.stat-card .icon-wrap.green{background:linear-gradient(135deg,#43e97b,#38f9d7)}
+.stat-card .icon-wrap.orange{background:linear-gradient(135deg,#fa709a,#fee140)}
+.stat-card .icon-wrap.purple{background:linear-gradient(135deg,#a18cd1,#fbc2eb)}
+.stat-card .stat-info{margin-left:14px}
+.stat-card .stat-number{font-size:26px;font-weight:700;color:#333}
+.stat-card .stat-label{font-size:13px;color:#999;margin-top:2px}
+
+/* 内容区块 */
+.content-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.section{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden}
+.section-header{padding:14px 18px;border-bottom:1px solid #f0f0f0;font-size:15px;font-weight:500;color:#333;display:flex;align-items:center}
+.section-header .mdi{margin-right:6px;font-size:18px;color:#4facfe}
+.section-body{padding:18px}
+
+/* 技术栈 */
+.tech-tags{display:flex;flex-wrap:wrap;gap:8px}
+.tech-tag{padding:6px 14px;border-radius:20px;font-size:12px;color:#fff;white-space:nowrap}
+.tech-tag.java{background:#e76f51}
+.tech-tag.spring{background:#6db33f}
+.tech-tag.solon{background:#4facfe}
+.tech-tag.beetl{background:#f39c12}
+.tech-tag.bootstrap{background:#7952b3}
+.tech-tag.mysql{background:#00758f}
+.tech-tag.redis{background:#dc382d}
+.tech-tag.nginx{background:#269539}
+.tech-tag.docker{background:#2496ed}
+
+/* 公告列表 */
+.notice-list{list-style:none}
+.notice-list li{padding:10px 0;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;font-size:13px;color:#555}
+.notice-list li:last-child{border-bottom:none}
+.notice-list .dot{width:6px;height:6px;border-radius:50%;background:#4facfe;margin-right:10px;flex-shrink:0}
+.notice-list .time{color:#bbb;font-size:12px;margin-left:auto;flex-shrink:0}
+
+@media(max-width:768px){
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .content-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="welcome-bar">
+  <div class="avatar-circle">${strutil.subString(user.nickName!=null?user.nickName:'U',0,1)}</div>
+  <div>
+    <div class="greeting">欢迎回来，<strong>${user.nickName!=null?user.nickName:user.userName}</strong></div>
+    <div class="time-text" id="timeText"></div>
+  </div>
+</div>
+
+<div class="stat-cards">
+  <div class="stat-card">
+    <div class="icon-wrap blue"><span class="mdi mdi-account-group"></span></div>
+    <div class="stat-info">
+      <div class="stat-number">128</div>
+      <div class="stat-label">系统用户</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon-wrap green"><span class="mdi mdi-menu"></span></div>
+    <div class="stat-info">
+      <div class="stat-number">56</div>
+      <div class="stat-label">系统菜单</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon-wrap orange"><span class="mdi mdi-office-building"></span></div>
+    <div class="stat-info">
+      <div class="stat-number">12</div>
+      <div class="stat-label">部门数量</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="icon-wrap purple"><span class="mdi mdi-book-open"></span></div>
+    <div class="stat-info">
+      <div class="stat-number">89</div>
+      <div class="stat-label">字典条目</div>
+    </div>
+  </div>
+</div>
+
+<div class="content-grid">
+  <div class="section">
+    <div class="section-header">
+      <span class="mdi mdi-tools"></span> 技术栈
+    </div>
+    <div class="section-body">
+      <div class="tech-tags">
+        <span class="tech-tag java">Java 8+</span>
+        <span class="tech-tag spring">Spring Boot</span>
+        <span class="tech-tag solon">Solon Framework</span>
+        <span class="tech-tag beetl">Beetl Template</span>
+        <span class="tech-tag bootstrap">Bootstrap 4</span>
+        <span class="tech-tag mysql">MySQL</span>
+        <span class="tech-tag redis">Redis</span>
+        <span class="tech-tag nginx">Nginx</span>
+        <span class="tech-tag docker">Docker</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="mdi mdi-bell-ring"></span> 最新公告
+    </div>
+    <div class="section-body">
+      <ul class="notice-list">
+        <li><span class="dot"></span>系统v2.0版本已发布上线<span class="time">2026-06-01</span></li>
+        <li><span class="dot"></span>关于服务器维护通知<span class="time">2026-05-28</span></li>
+        <li><span class="dot"></span>新增数据字典管理功能<span class="time">2026-05-20</span></li>
+        <li><span class="dot"></span>用户权限体系优化完成<span class="time">2026-05-15</span></li>
+        <li><span class="dot"></span>系统安全审计报告已发布<span class="time">2026-05-10</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+  updateTime();
+  setInterval(updateTime, 60000);
+});
+
+function updateTime(){
+  var now = new Date();
+  var days = ['日','一','二','三','四','五','六'];
+  var str = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+days[now.getDay()];
+  $('#timeText').text(str);
+}
+</script>
+
+</body>
+</html>
