@@ -32,6 +32,12 @@ public class SysDeptController extends BaseController {
         ctx.render("dept.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(deptService.selectDeptById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysDept dept) {

@@ -32,6 +32,12 @@ public class SysNoticeController extends BaseController {
         ctx.render("notice.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(noticeService.selectNoticeById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysNotice notice) {

@@ -34,7 +34,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
     <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
   </div>
   <div class="section-body">
-    <form class="search-form" method="get" action="">
+    <form class="search-form" method="get" action="/system/menu">
       <div class="form-group">
         <label>菜单名称</label>
         <input type="text" class="form-control" name="menuName" placeholder="输入菜单名称" value="${menuName!''}" style="width:180px">
@@ -205,7 +205,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
 </div>
 
 <script src="/static/lib/jquery/jquery.min.js"></script>
-<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/static/lib/layer/layer.js"></script>
 <script>
 var isEdit = false;
@@ -246,7 +246,7 @@ function openAddChild(parentId){
 function openEdit(menuId){
   isEdit = true;
   $('#modalTitle').text('编辑菜单');
-  $.get('/system/menu/detail?menuId='+menuId, function(res){
+  $.get('/system/menu/detail?id='+menuId, function(res){
     if(res.code === 0){
       var data = res.data;
       $('#editMenuId').val(data.menuId);

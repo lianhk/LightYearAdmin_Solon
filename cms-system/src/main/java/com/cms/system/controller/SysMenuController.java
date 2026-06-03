@@ -32,6 +32,12 @@ public class SysMenuController extends BaseController {
         ctx.render("menu.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(menuService.selectMenuById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysMenu menu) {

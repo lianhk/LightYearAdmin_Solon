@@ -30,7 +30,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
     <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
   </div>
   <div class="section-body">
-    <form class="search-form" method="get" action="">
+    <form class="search-form" method="get" action="/system/role">
       <div class="form-group">
         <label>角色名称</label>
         <input type="text" class="form-control" name="roleName" placeholder="输入角色名称" value="${roleName!''}" style="width:180px">
@@ -98,6 +98,16 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
         <% } %>
       </tbody>
     </table>
+    <div style="display:flex;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
+      <span>共 <b id="totalCount">${list.~size}</b> 条</span>
+      <div style="margin-left:16px;display:flex;gap:4px">
+        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(1)" style="padding:4px 10px">首页</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-1)" style="padding:4px 10px">上一页</button>
+        <span style="line-height:30px;margin:0 8px">第 <b id="pageNum">1</b> / <b id="totalPages">1</b> 页</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-2)" style="padding:4px 10px">下一页</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="goPage(-3)" style="padding:4px 10px">末页</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -143,7 +153,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
 </div>
 
 <script src="/static/lib/jquery/jquery.min.js"></script>
-<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/static/lib/layer/layer.js"></script>
 <script>
 var isEdit = false;
@@ -163,7 +173,7 @@ function openAdd(){
 function openEdit(roleId){
   isEdit = true;
   $('#modalTitle').text('编辑角色');
-  $.get('/system/role/detail?roleId='+roleId, function(res){
+  $.get('/system/role/detail?id='+roleId, function(res){
     if(res.code === 0){
       var data = res.data;
       $('#editRoleId').val(data.roleId);
@@ -205,7 +215,7 @@ function authMenu(roleId){
 function doDelete(roleId){
   layer.confirm('确定要删除该角色吗？', {title:'提示', btn:['确定','取消']}, function(idx){
     layer.close(idx);
-    $.post('/system/role/delete', {roleId:roleId}, function(res){
+    $.post('/system/role/delete', {roleIds: roleId}, function(res){
       if(res.code === 0){
         layer.msg('删除成功', {icon:1});
         setTimeout(function(){ window.location.reload(); }, 800);

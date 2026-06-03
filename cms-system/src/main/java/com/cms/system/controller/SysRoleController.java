@@ -34,6 +34,12 @@ public class SysRoleController extends BaseController {
         ctx.render("role.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(roleService.selectRoleById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysRole role) {

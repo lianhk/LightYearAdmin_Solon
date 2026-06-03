@@ -34,6 +34,12 @@ public class SysPostController extends BaseController {
         ctx.render("post.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(postService.selectPostById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysPost post) {

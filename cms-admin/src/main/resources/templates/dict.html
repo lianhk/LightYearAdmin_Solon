@@ -199,7 +199,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
 </div>
 
 <script src="/static/lib/jquery/jquery.min.js"></script>
-<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/static/lib/layer/layer.js"></script>
 <script>
 var currentDictType = '';
@@ -232,7 +232,7 @@ function openTypeAdd(){
 function openTypeEdit(dictId){
   isEditType = true;
   $('#typeModalTitle').text('编辑字典类型');
-  $.get('/system/dict/type/detail?dictId='+dictId, function(res){
+  $.get('/system/dict/type/detail?id='+dictId, function(res){
     if(res.code === 0){
       var data = res.data;
       $('#editTypeId').val(data.dictId);
@@ -325,7 +325,7 @@ function openDataAdd(){
 function openDataEdit(dictCode){
   isEditData = true;
   $('#dataModalTitle').text('编辑字典数据');
-  $.get('/system/dict/data/detail?dictCode='+dictCode, function(res){
+  $.get('/system/dict/data/detail?id='+dictCode, function(res){
     if(res.code === 0){
       var data = res.data;
       $('#editDataCode').val(data.dictCode);

@@ -43,6 +43,18 @@ public class SysDictTypeController extends BaseController {
         ctx.render("dict.html");
     }
 
+    @Get
+    @Mapping("/type/detail")
+    public AjaxResult typeDetail(Context ctx) {
+        return success(dictTypeService.selectDictTypeById(Long.parseLong(ctx.param("id"))));
+    }
+
+    @Get
+    @Mapping("/data/detail")
+    public AjaxResult dataDetail(Context ctx) {
+        return success(dictDataService.selectDictDataById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/type/add")
     public AjaxResult addType(Context ctx, SysDictType dictType) {

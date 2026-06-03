@@ -1,7 +1,5 @@
 package com.cms.common.core;
 
-import cn.hutool.http.HttpStatus;
-
 import java.util.HashMap;
 
 /**
@@ -32,29 +30,29 @@ public class AjaxResult extends HashMap<String, Object> {
     }
 
     public static AjaxResult success() {
-        return new AjaxResult(HttpStatus.HTTP_OK, "操作成功");
+        return new AjaxResult(0, "操作成功");
     }
 
     public static AjaxResult success(String msg) {
-        return new AjaxResult(HttpStatus.HTTP_OK, msg);
+        return new AjaxResult(0, msg);
     }
 
     public static AjaxResult success(Object data) {
-        AjaxResult result = new AjaxResult(HttpStatus.HTTP_OK, "操作成功");
+        AjaxResult result = new AjaxResult(0, "操作成功");
         result.put(DATA_TAG, data);
         return result;
     }
 
     public static AjaxResult success(String msg, Object data) {
-        return new AjaxResult(HttpStatus.HTTP_OK, msg, data);
+        return new AjaxResult(0, msg, data);
     }
 
     public static AjaxResult error() {
-        return new AjaxResult(HttpStatus.HTTP_INTERNAL_ERROR, "操作失败");
+        return new AjaxResult(1, "操作失败");
     }
 
     public static AjaxResult error(String msg) {
-        return new AjaxResult(HttpStatus.HTTP_INTERNAL_ERROR, msg);
+        return new AjaxResult(1, msg);
     }
 
     public static AjaxResult error(int code, String msg) {

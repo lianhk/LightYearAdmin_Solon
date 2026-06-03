@@ -31,7 +31,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
     <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
   </div>
   <div class="section-body">
-    <form class="search-form" method="get" action="">
+    <form class="search-form" method="get" action="/system/dept">
       <div class="form-group">
         <label>部门名称</label>
         <input type="text" class="form-control" name="deptName" placeholder="输入部门名称" value="${deptName!''}" style="width:180px">
@@ -152,7 +152,7 @@ body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
 </div>
 
 <script src="/static/lib/jquery/jquery.min.js"></script>
-<script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="/static/lib/layer/layer.js"></script>
 <script>
 var isEdit = false;
@@ -178,7 +178,7 @@ function openAddChild(parentId){
 function openEdit(deptId){
   isEdit = true;
   $('#modalTitle').text('编辑部门');
-  $.get('/system/dept/detail?deptId='+deptId, function(res){
+  $.get('/system/dept/detail?id='+deptId, function(res){
     if(res.code === 0){
       var data = res.data;
       $('#editDeptId').val(data.deptId);

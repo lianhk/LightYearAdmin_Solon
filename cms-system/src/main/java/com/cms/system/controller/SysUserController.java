@@ -34,6 +34,15 @@ public class SysUserController extends BaseController {
         ctx.render("user.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        Long id = Long.parseLong(ctx.param("id"));
+        SysUser u = userService.selectUserById(id);
+        u.setPassword(null);
+        return success(u);
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysUser user) {

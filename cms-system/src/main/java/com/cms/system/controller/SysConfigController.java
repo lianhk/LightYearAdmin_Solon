@@ -32,6 +32,12 @@ public class SysConfigController extends BaseController {
         ctx.render("config.html");
     }
 
+    @Get
+    @Mapping("/detail")
+    public AjaxResult detail(Context ctx) {
+        return success(configService.selectConfigById(Long.parseLong(ctx.param("id"))));
+    }
+
     @Post
     @Mapping("/add")
     public AjaxResult add(Context ctx, SysConfig config) {
