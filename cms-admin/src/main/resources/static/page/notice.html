@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>通知公告</title>
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px;padding:7px 16px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-warning{background:#fee140;border-color:#fee140;color:#333}.btn-danger{background:#fa709a;border-color:#fa709a;color:#fff}.btn-sm{padding:4px 10px;font-size:12px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}
+.form-inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="section"><div class="section-header"><strong>通知公告</strong>
+  <div><button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button></div>
+</div>
+<div class="section-body">
+  <div class="form-inline"><input class="form-control" id="searchTitle" placeholder="公告标题" style="width:180px">
+    <select class="form-control" id="searchType" style="width:120px"><option value="">类型</option><option value="1">通知</option><option value="2">公告</option></select>
+    <button class="btn btn-primary" onclick="search()"><span class="mdi mdi-magnify"></span></button>
+  </div>
+  <hr>
+  <table class="table table-hover"><thead><tr><th>编号</th><th>标题</th><th>类型</th><th>状态</th><th>创建时间</th><th width="120">操作</th></tr></thead><tbody></tbody></table>
+</div></div>
+
+<div class="modal fade" id="noticeModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增公告</h5><button class="close" data-dismiss="modal">&times;</button></div>
+<div class="modal-body">
+  <input type="hidden" id="editNoticeId"><div class="form-group"><label>公告标题</label><input class="form-control" id="editTitle"></div>
+  <div class="form-group"><label>公告类型</label><select class="form-control" id="editType"><option value="1">通知</option><option value="2">公告</option></select></div>
+  <div class="form-group"><label>内容</label><textarea class="form-control" id="editContent" rows="6"></textarea></div>
+  <div class="form-group"><label>状态</label><select class="form-control" id="editStatus"><option value="0">正常</option><option value="1">关闭</option></select></div>
+</div>
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveNotice()">保存</button></div>
+</div></div></div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
+function H(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}}
+$(function(){loadData()});function search(){loadData()}
+function loadData(){
+  $.ajax({url:'/system/notice/list',type:'GET',headers:{'Authorization':'Bearer '+token},
+    data:{noticeTitle:$('#searchTitle').val(),noticeType:$('#searchType').val()},
+    success:function(res){
+      var t='';(res.rows||[]).forEach(function(n){
+        t+='<tr><td>'+n.noticeId+'</td><td>'+n.noticeTitle+'</td><td><span class="badge '+(n.noticeType=='2'?'badge-warning':'badge-info')+'">'+(n.noticeType=='2'?'公告':'通知')+'</span></td>';
+        t+='<td><span class="badge '+(n.status=='0'?'badge-success':'badge-danger')+'">'+(n.status=='0'?'正常':'关闭')+'</span></td>';
+        t+='<td>'+(n.createTime||'')+'</td>';
+        t+='<td><button class="btn btn-sm btn-warning" onclick="openEdit('+n.noticeId+')"><span class="mdi mdi-pencil"></span></button> ';
+        t+='<button class="btn btn-sm btn-danger" onclick="deleteNotice('+n.noticeId+')"><span class="mdi mdi-delete"></span></button></td></tr>';
+      });$('table tbody').html(t);
+    }
+  });
+}
+function openAdd(){$('#editNoticeId').val('');$('#editTitle,#editContent').val('');$('#editType').val('1');$('#editStatus').val('0');
+  $('#modalTitle').text('新增公告');$('#noticeModal').modal('show')}
+function openEdit(id){
+  $.ajax({url:'/system/notice/'+id,type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    var n=res.data;$('#editNoticeId').val(n.noticeId);$('#editTitle').val(n.noticeTitle);$('#editType').val(n.noticeType);
+    $('#editContent').val(n.noticeContent);$('#editStatus').val(n.status);$('#modalTitle').text('编辑公告');$('#noticeModal').modal('show');
+  }});
+}
+function saveNotice(){
+  var d={noticeId:$('#editNoticeId').val(),noticeTitle:$('#editTitle').val(),noticeType:$('#editType').val(),
+    noticeContent:$('#editContent').val(),status:$('#editStatus').val()};
+  $.ajax({url:'/system/notice',type:d.noticeId?'PUT':'POST',contentType:'application/json',headers:H(),data:JSON.stringify(d),
+    success:function(res){if(res.code===200){$('#noticeModal').modal('hide');loadData()}else alert(res.msg)}});
+}
+function deleteNotice(id){if(!confirm('确认删除？'))return;
+  $.ajax({url:'/system/notice/'+id,type:'DELETE',headers:{'Authorization':'Bearer '+token},success:function(res){if(res.code===200)loadData()}});
+}
+</script>
+</body>
+</html>

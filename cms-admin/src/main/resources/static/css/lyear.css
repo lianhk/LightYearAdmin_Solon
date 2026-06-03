@@ -1,0 +1,33 @@
+/* Light Year Admin Iframe v4 Theme */
+/* Base styles for the admin template */
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* Sidebar scrollbar */
+.lyear-layout-sidebar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.lyear-layout-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.lyear-layout-content { animation: fadeIn 0.3s ease; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lyear-layout-sidebar { width: 0; overflow: hidden; }
+    .lyear-layout-main { margin-left: 0 !important; }
+    .sidebar-collapsed .lyear-layout-sidebar { width: 240px; }
+}
+
+/* Badge styles */
+.badge-success { background-color: #43e97b; color: #333; }
+.badge-danger { background-color: #fa709a; color: #fff; }
+.badge-warning { background-color: #fee140; color: #333; }
+.badge-info { background-color: #4facfe; color: #fff; }
+.badge-secondary { background-color: #95a5a6; color: #fff; }
+
+/* Utility */
+.text-muted { color: #999 !important; }

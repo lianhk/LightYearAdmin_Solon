@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Scaffold - 登录</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .login-container {
+            width: 420px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: #fff;
+        }
+        .login-header h2 { margin: 10px 0 0; font-size: 22px; }
+        .login-header p { margin: 5px 0 0; opacity: 0.8; font-size: 13px; }
+        .login-body { padding: 35px 40px; }
+        .form-group { margin-bottom: 22px; position: relative; }
+        .form-group label { font-weight: 600; color: #555; font-size: 14px; margin-bottom: 5px; }
+        .form-control {
+            height: 44px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            padding-left: 40px;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79,172,254,0.15);
+        }
+        .form-group .mdi {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #aaa;
+            font-size: 18px;
+        }
+        .btn-login {
+            width: 100%;
+            height: 44px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,172,254,0.4); }
+        .login-footer { text-align: center; padding: 15px; color: #999; font-size: 12px; }
+        .error-msg { color: #e74c3c; font-size: 13px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <span class="mdi mdi-shield-account" style="font-size:48px;"></span>
+            <h2>CMS 管理系统</h2>
+            <p>Solon + BeetlSQL + Bootstrap</p>
+        </div>
+        <div class="login-body">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <span class="mdi mdi-account"></span>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" value="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <span class="mdi mdi-lock"></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" value="admin123" required>
+                </div>
+                <div class="error-msg" id="errorMsg"></div>
+                <button type="submit" class="btn-login">登 录</button>
+            </form>
+        </div>
+        <div class="login-footer">Copyright &copy; 2024 CMS Scaffold. All Rights Reserved.</div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(function() {
+            $('#loginForm').on('submit', function(e) {
+                e.preventDefault();
+                var username = $('#username').val();
+                var password = $('#password').val();
+                if (!username || !password) {
+                    $('#errorMsg').text('用户名和密码不能为空').show();
+                    return;
+                }
+                $.ajax({
+                    url: '/login',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username: username, password: password }),
+                    success: function(res) {
+                        if (res.code === 200) {
+                            localStorage.setItem('token', res.data.token);
+                            localStorage.setItem('user', JSON.stringify(res.data.user));
+                            window.location.href = '/static/index.html';
+                        } else {
+                            $('#errorMsg').text(res.msg).show();
+                        }
+                    },
+                    error: function(xhr) {
+                        var msg = '登录失败，请重试';
+                        try { msg = JSON.parse(xhr.responseText).msg; } catch(e) {}
+                        $('#errorMsg').text(msg).show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# Solon Configuration
+solon.name: CMS-Scaffold
+solon.logging.logger:
+  "org.noear":
+    level: INFO
+
+# Server configuration
+server.port: 8080
+server.request.maxBodySize: 20mb
+
+# BeetlSQL Configuration
+beetlsql.dbStyle: "org.beetl.sql.core.db.MySqlStyle"
+beetlsql.sqlPath: "beetlsql"
+beetlsql.nameConversion: "org.beetl.sql.core.UnderlinedNameConversion"
+
+# Database Configuration
+beetlsql.db:
+  url: jdbc:mysql://localhost:3306/cms_scaffold?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
+  driverClassName: com.mysql.cj.jdbc.Driver
+  username: root
+  password: root
+  maxActive: 20
+  initialSize: 5
+  minIdle: 5
+  maxWait: 60000
+
+# JWT Configuration
+jwt.secret: cms-scaffold-jwt-secret-key-2024
+jwt.expiration: 7200000

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Scaffold 管理系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="css/lyear.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* 左侧菜单栏 */
+        .lyear-layout-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: #2c3e50;
+            color: #fff;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        .sidebar-logo {
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            background: #1a252f;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sidebar-logo .mdi { font-size: 26px; vertical-align: middle; margin-right: 6px; }
+
+        .sidebar-user {
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+        }
+        .sidebar-user .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #4facfe;
+            line-height: 42px;
+            text-align: center;
+            font-size: 18px;
+            margin-right: 10px;
+            color: #fff;
+        }
+        .sidebar-user .info { flex: 1; }
+        .sidebar-user .name { font-size: 14px; font-weight: 600; }
+        .sidebar-user .role { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+        /* 菜单 */
+        .sidebar-nav { padding: 10px 0; }
+        .sidebar-nav .nav-item { position: relative; }
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.08);
+            border-left-color: #4facfe;
+        }
+        .sidebar-nav .nav-link .mdi { font-size: 18px; margin-right: 10px; width: 20px; text-align: center; }
+        .sidebar-nav .nav-link .arrow { margin-left: auto; font-size: 12px; transition: transform 0.3s; }
+        .sidebar-nav .nav-link .arrow.open { transform: rotate(90deg); }
+
+        /* 子菜单 */
+        .sidebar-nav .submenu { display: none; background: rgba(0,0,0,0.15); }
+        .sidebar-nav .submenu.open { display: block; }
+        .sidebar-nav .submenu .nav-link { padding-left: 50px; font-size: 13px; }
+
+        /* 右侧主体 */
+        .lyear-layout-main {
+            margin-left: 240px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+
+        /* 顶部导航 */
+        .lyear-layout-header {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .header-left { display: flex; align-items: center; }
+        .sidebar-toggle {
+            font-size: 22px;
+            color: #666;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+        .header-breadcrumb { font-size: 13px; color: #999; }
+        .header-right { display: flex; align-items: center; }
+        .header-right .header-item {
+            padding: 8px 12px;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .header-right .header-item:hover { background: #f5f5f5; color: #333; }
+
+        /* 内容区 */
+        .lyear-layout-content { padding: 20px; }
+
+        /* iframe */
+        .content-iframe {
+            width: 100%;
+            height: calc(100vh - 80px);
+            border: none;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        /* 收起侧边栏 */
+        .sidebar-collapsed .lyear-layout-sidebar { width: 64px; }
+        .sidebar-collapsed .lyear-layout-sidebar .sidebar-logo span,
+        .sidebar-collapsed .lyear-layout-sidebar .sidebar-user .info,
+        .sidebar-collapsed .lyear-layout-sidebar .nav-link span,
+        .sidebar-collapsed .lyear-layout-sidebar .nav-link .arrow,
+        .sidebar-collapsed .lyear-layout-sidebar .submenu { display: none; }
+        .sidebar-collapsed .lyear-layout-main { margin-left: 64px; }
+        .sidebar-collapsed .sidebar-logo .mdi { margin: 0; }
+    </style>
+</head>
+<body>
+    <!-- 左侧菜单 -->
+    <aside class="lyear-layout-sidebar">
+        <div class="sidebar-logo">
+            <span class="mdi mdi-layers"></span>
+            <span>CMS 管理系统</span>
+        </div>
+        <div class="sidebar-user">
+            <div class="avatar" id="userAvatar">A</div>
+            <div class="info">
+                <div class="name" id="userName">管理员</div>
+                <div class="role">超级管理员</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav" id="sidebarMenu">
+            <!-- 动态生成菜单 -->
+        </nav>
+    </aside>
+
+    <!-- 主体 -->
+    <main class="lyear-layout-main">
+        <!-- 顶部导航 -->
+        <header class="lyear-layout-header">
+            <div class="header-left">
+                <span class="sidebar-toggle" id="sidebarToggle" title="展开/收起菜单">
+                    <span class="mdi mdi-menu"></span>
+                </span>
+                <span class="header-breadcrumb" id="breadcrumb">首页</span>
+            </div>
+            <div class="header-right">
+                <a href="#" class="header-item" onclick="loadPage('/page/welcome.html', '首页')">
+                    <span class="mdi mdi-home"></span> 首页
+                </a>
+                <a href="/static/login.html" class="header-item" onclick="localStorage.clear()">
+                    <span class="mdi mdi-logout"></span> 退出
+                </a>
+            </div>
+        </header>
+
+        <!-- 内容区 -->
+        <div class="lyear-layout-content">
+            <iframe id="contentIframe" class="content-iframe" src="/static/page/welcome.html"></iframe>
+        </div>
+    </main>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(function() {
+            // 检查登录状态
+            var token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/static/login.html';
+                return;
+            }
+
+            // 设置用户信息
+            var user = JSON.parse(localStorage.getItem('user') || '{}');
+            $('#userName').text(user.nickName || user.userName || '用户');
+            if (user.nickName) {
+                $('#userAvatar').text(user.nickName.charAt(0));
+            }
+
+            // 加载菜单
+            loadMenus();
+
+            // 侧边栏展开/收起
+            $('#sidebarToggle').on('click', function() {
+                $('body').toggleClass('sidebar-collapsed');
+            });
+        });
+
+        // 加载菜单
+        function loadMenus() {
+            $.ajax({
+                url: '/getRouters',
+                type: 'GET',
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                success: function(res) {
+                    if (res.code === 200) {
+                        renderMenu(res.data);
+                    }
+                }
+            });
+        }
+
+        // 渲染菜单
+        function renderMenu(menus) {
+            var $nav = $('#sidebarMenu');
+            $nav.empty();
+            if (!menus) return;
+
+            menus.forEach(function(menu) {
+                if (menu.children && menu.children.length > 0) {
+                    // 有子菜单 - 一级目录
+                    var icon = menu.icon || 'mdi mdi-circle';
+                    var html = '<div class="nav-item">';
+                    html += '<a class="nav-link has-submenu" data-id="' + menu.menuId + '">';
+                    html += '<span class="' + icon + '"></span>';
+                    html += '<span>' + menu.menuName + '</span>';
+                    html += '<span class="arrow mdi mdi-chevron-right"></span>';
+                    html += '</a>';
+                    html += '<div class="submenu">';
+                    menu.children.forEach(function(child) {
+                        var cIcon = child.icon || 'mdi mdi-circle-small';
+                        html += '<a class="nav-link" onclick="loadPage(\'' + child.path + '\', \'' + child.menuName + '\')">';
+                        html += '<span class="' + cIcon + '"></span>';
+                        html += '<span>' + child.menuName + '</span>';
+                        html += '</a>';
+                    });
+                    html += '</div></div>';
+                    $nav.append(html);
+                }
+            });
+
+            // 菜单展开/收起事件
+            $('.has-submenu').off('click').on('click', function() {
+                var $submenu = $(this).siblings('.submenu');
+                $(this).find('.arrow').toggleClass('open');
+                $submenu.toggleClass('open');
+            });
+        }
+
+        // 加载页面到iframe
+        function loadPage(url, title) {
+            if (!url) return;
+            $('#contentIframe').attr('src', '/static/' + url);
+            $('#breadcrumb').text(title || '');
+            // 当前激活菜单
+            $('.sidebar-nav .nav-link').removeClass('active');
+        }
+
+        // 监听iframe加载完成
+        $('#contentIframe').on('load', function() {
+            // iframe内部可以通过parent调用外部方法
+        });
+    </script>
+</body>
+</html>

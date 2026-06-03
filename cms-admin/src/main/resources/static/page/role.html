@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>角色管理</title>
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px;padding:7px 16px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-warning{background:#fee140;border-color:#fee140;color:#333}.btn-danger{background:#fa709a;border-color:#fa709a;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}
+.form-inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="section">
+  <div class="section-header"><strong>角色管理</strong></div>
+  <div class="section-body">
+    <div class="form-inline">
+      <input type="text" class="form-control" id="searchRoleName" placeholder="角色名称" style="width:150px">
+      <input type="text" class="form-control" id="searchRoleKey" placeholder="权限字符" style="width:150px">
+      <select class="form-control" id="searchStatus" style="width:120px"><option value="">状态</option><option value="0">正常</option><option value="1">停用</option></select>
+      <button class="btn btn-primary" onclick="search()"><span class="mdi mdi-magnify"></span> 搜索</button>
+      <button class="btn btn-outline-secondary" onclick="resetSearch()"><span class="mdi mdi-refresh"></span></button>
+    </div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <span>角色列表</span>
+    <div><button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button></div>
+  </div>
+  <div class="section-body">
+    <table class="table table-hover"><thead><tr><th>角色编号</th><th>角色名称</th><th>权限字符</th><th>显示顺序</th><th>状态</th><th>创建时间</th><th width="160">操作</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<div class="modal fade" id="roleModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增角色</h5><button class="close" data-dismiss="modal">&times;</button></div>
+<div class="modal-body">
+  <input type="hidden" id="editRoleId">
+  <div class="form-group"><label>角色名称</label><input class="form-control" id="editRoleName"></div>
+  <div class="form-group"><label>权限字符</label><input class="form-control" id="editRoleKey"></div>
+  <div class="form-group"><label>显示顺序</label><input class="form-control" type="number" id="editRoleSort" value="0"></div>
+  <div class="form-group"><label>状态</label><select class="form-control" id="editStatus"><option value="0">正常</option><option value="1">停用</option></select></div>
+  <div class="form-group"><label>备注</label><textarea class="form-control" id="editRemark" rows="2"></textarea></div>
+</div>
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveRole()">保存</button></div>
+</div></div></div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
+function H(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}}
+$(function(){loadData()});
+function search(){loadData()}
+function resetSearch(){$('#searchRoleName,#searchRoleKey').val('');$('#searchStatus').val('');loadData()}
+function loadData(){
+  $.ajax({url:'/system/role/list',type:'GET',headers:{'Authorization':'Bearer '+token},
+    data:{roleName:$('#searchRoleName').val(),roleKey:$('#searchRoleKey').val(),status:$('#searchStatus').val()},
+    success:function(res){
+      var t='';(res.rows||[]).forEach(function(r){
+        t+='<tr><td>'+r.roleId+'</td><td>'+r.roleName+'</td><td>'+r.roleKey+'</td><td>'+r.roleSort+'</td>';
+        t+='<td><span class="badge '+(r.status=='0'?'badge-success':'badge-danger')+'">'+(r.status=='0'?'正常':'停用')+'</span></td>';
+        t+='<td>'+(r.createTime||'')+'</td>';
+        t+='<td><button class="btn btn-sm btn-warning" onclick="openEdit('+r.roleId+')"><span class="mdi mdi-pencil"></span></button> ';
+        t+='<button class="btn btn-sm btn-danger" onclick="deleteRole('+r.roleId+')"><span class="mdi mdi-delete"></span></button></td></tr>';
+      });
+      $('table tbody').html(t);
+    }
+  });
+}
+function openAdd(){
+  $('#editRoleId').val('');$('#editRoleName,#editRoleKey').val('');$('#editRoleSort').val('0');$('#editRemark').val('');
+  $('#modalTitle').text('新增角色');$('#roleModal').modal('show');
+}
+function openEdit(id){
+  $.ajax({url:'/system/role/'+id,type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    var r=res.data;$('#editRoleId').val(r.roleId);$('#editRoleName').val(r.roleName);$('#editRoleKey').val(r.roleKey);
+    $('#editRoleSort').val(r.roleSort);$('#editStatus').val(r.status);$('#editRemark').val(r.remark);
+    $('#modalTitle').text('编辑角色');$('#roleModal').modal('show');
+  }});
+}
+function saveRole(){
+  var d={roleId:$('#editRoleId').val(),roleName:$('#editRoleName').val(),roleKey:$('#editRoleKey').val(),
+    roleSort:$('#editRoleSort').val(),status:$('#editStatus').val(),remark:$('#editRemark').val()};
+  $.ajax({url:'/system/role',type:d.roleId?'PUT':'POST',contentType:'application/json',headers:H(),data:JSON.stringify(d),
+    success:function(res){if(res.code===200){$('#roleModal').modal('hide');loadData()}else alert(res.msg)}});
+}
+function deleteRole(id){if(!confirm('确认删除？'))return;
+  $.ajax({url:'/system/role/'+id,type:'DELETE',headers:{'Authorization':'Bearer '+token},success:function(res){if(res.code===200)loadData()}});
+}
+</script>
+</body>
+</html>

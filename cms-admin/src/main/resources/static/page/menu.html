@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>菜单管理</title>
+<link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.bootcdn.net/ajax/libs/MaterialDesign-Webfont/5.9.55/css/materialdesignicons.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px;padding:7px 16px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-info{background:#00d2ff;border-color:#00d2ff;color:#fff}.btn-warning{background:#fee140;border-color:#fee140;color:#333}.btn-danger{background:#fa709a;border-color:#fa709a;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.tree-indent{display:inline-block;width:18px}
+</style>
+</head>
+<body>
+<div class="section">
+  <div class="section-header">
+    <strong>菜单管理</strong>
+    <div><button class="btn btn-primary btn-sm" onclick="openAdd(0)"><span class="mdi mdi-plus"></span> 新增</button></div>
+  </div>
+  <div class="section-body">
+    <table class="table table-hover"><thead><tr><th>菜单名称</th><th>图标</th><th>排序</th><th>权限标识</th><th>组件</th><th>状态</th><th width="180">操作</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<div class="modal fade" id="menuModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title" id="modalTitle">新增菜单</h5><button class="close" data-dismiss="modal">&times;</button></div>
+<div class="modal-body">
+  <input type="hidden" id="editMenuId"><input type="hidden" id="editParentId">
+  <div class="form-group"><label>上级菜单</label><input class="form-control" id="parentName" readonly></div>
+  <div class="form-group"><label>菜单类型</label><select class="form-control" id="editMenuType"><option value="M">目录</option><option value="C">菜单</option><option value="F">按钮</option></select></div>
+  <div class="form-group"><label>菜单名称</label><input class="form-control" id="editMenuName"></div>
+  <div class="form-group"><label>路由地址</label><input class="form-control" id="editPath" placeholder="如: page/user.html"></div>
+  <div class="form-group"><label>图标</label><input class="form-control" id="editIcon" placeholder="如: mdi mdi-account"></div>
+  <div class="form-group"><label>显示排序</label><input class="form-control" type="number" id="editOrderNum" value="0"></div>
+  <div class="form-group"><label>权限标识</label><input class="form-control" id="editPerms" placeholder="如: system:user:list"></div>
+  <div class="form-group"><label>状态</label><select class="form-control" id="editStatus"><option value="0">正常</option><option value="1">停用</option></select></div>
+</div>
+<div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="saveMenu()">保存</button></div>
+</div></div></div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script>
+var token = parent.localStorage.getItem('token') || localStorage.getItem('token');
+function H(){return {'Authorization':'Bearer '+token,'Content-Type':'application/json'}}
+$(function(){loadData()});
+function loadData(){
+  $.ajax({url:'/system/menu/list',type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    var t='';function render(menus,level){
+      if(!menus)return;menus.forEach(function(m){
+        var indent='';for(var i=0;i<level;i++)indent+='<span class="tree-indent"></span>';
+        t+='<tr><td>'+indent+(level>0?'&boxur; ':'')+m.menuName+'</td>';
+        t+='<td><span class="'+m.icon+'"></span></td><td>'+m.orderNum+'</td><td>'+(m.perms||'')+'</td>';
+        t+='<td>'+(m.path||'')+'</td><td><span class="badge '+(m.status=='0'?'badge-success':'badge-danger')+'">'+(m.status=='0'?'正常':'停用')+'</span></td>';
+        t+='<td><button class="btn btn-sm btn-info" onclick="openAdd('+m.menuId+')"><span class="mdi mdi-plus"></span></button> ';
+        t+='<button class="btn btn-sm btn-warning" onclick="openEdit('+m.menuId+')"><span class="mdi mdi-pencil"></span></button> ';
+        t+='<button class="btn btn-sm btn-danger" onclick="deleteMenu('+m.menuId+')"><span class="mdi mdi-delete"></span></button></td></tr>';
+        if(m.children)render(m.children,level+1);
+      });
+    }
+    render(res.data,0);$('table tbody').html(t);
+  }});
+}
+function openAdd(parentId){
+  $('#editMenuId').val('');$('#editParentId').val(parentId||0);
+  $('#editMenuName,#editPath,#editIcon,#editPerms').val('');
+  $('#editOrderNum').val('0');$('#editMenuType').val('M');$('#editStatus').val('0');
+  $('#parentName').val(parentId?'上级菜单（ID:'+parentId+'）':'根目录');
+  $('#modalTitle').text('新增菜单');$('#menuModal').modal('show');
+}
+function openEdit(id){
+  $.ajax({url:'/system/menu/'+id,type:'GET',headers:{'Authorization':'Bearer '+token},success:function(res){
+    var m=res.data;$('#editMenuId').val(m.menuId);$('#editParentId').val(m.parentId);
+    $('#editMenuName').val(m.menuName);$('#editPath').val(m.path);$('#editIcon').val(m.icon);
+    $('#editOrderNum').val(m.orderNum);$('#editPerms').val(m.perms);$('#editMenuType').val(m.menuType);
+    $('#editStatus').val(m.status);$('#parentName').val('上级菜单（ID:'+(m.parentId||0)+'）');
+    $('#modalTitle').text('编辑菜单');$('#menuModal').modal('show');
+  }});
+}
+function saveMenu(){
+  var d={menuId:$('#editMenuId').val(),parentId:parseInt($('#editParentId').val())||0,
+    menuName:$('#editMenuName').val(),path:$('#editPath').val(),icon:$('#editIcon').val(),
+    orderNum:parseInt($('#editOrderNum').val())||0,perms:$('#editPerms').val(),
+    menuType:$('#editMenuType').val(),status:$('#editStatus').val()};
+  $.ajax({url:'/system/menu',type:d.menuId?'PUT':'POST',contentType:'application/json',headers:H(),data:JSON.stringify(d),
+    success:function(res){if(res.code===200){$('#menuModal').modal('hide');loadData()}else alert(res.msg)}});
+}
+function deleteMenu(id){if(!confirm('确认删除？'))return;
+  $.ajax({url:'/system/menu/'+id,type:'DELETE',headers:{'Authorization':'Bearer '+token},success:function(res){if(res.code===200)loadData()}});
+}
+</script>
+</body>
+</html>
