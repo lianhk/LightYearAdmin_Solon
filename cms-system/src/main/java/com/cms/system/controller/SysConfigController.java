@@ -3,6 +3,7 @@ package com.cms.system.controller;
 import com.cms.common.core.AjaxResult;
 import com.cms.common.core.BaseController;
 import com.cms.system.domain.SysConfig;
+import com.cms.system.mapper.SysConfigMapper;
 import com.cms.system.service.ISysConfigService;
 import org.beetl.sql.core.query.PageQuery;
 import org.noear.solon.annotation.Controller;
@@ -20,6 +21,9 @@ public class SysConfigController extends BaseController {
 
     @Inject
     private ISysConfigService configService;
+
+    @Inject
+    private SysConfigMapper configMapper;
 
     @Get
     @Mapping
@@ -75,5 +79,37 @@ public class SysConfigController extends BaseController {
     @Mapping("/delete")
     public AjaxResult remove(Context ctx, Long[] configIds) {
         return configService.deleteConfigByIds(configIds) > 0 ? success() : error();
+    }
+
+    /** 批量保存配置（网站设置用） */
+    @Post
+    @Mapping("/batchSave")
+    public AjaxResult batchSave(Context ctx) throws Exception {
+        String body = ctx.body();
+        cn.hutool.json.JSONArray arr = cn.hutool.json.JSONUtil.parseArray(body);
+        for (int i = 0; i < arr.size(); i++) {
+            cn.hutool.json.JSONObject obj = arr.getJSONObject(i);
+            String key = obj.getStr("configKey");
+            String val = obj.getStr("configValue");
+            com.cms.system.domain.SysConfig old = configMapper.selectConfigByKey(key);
+            if (old != null) {
+                old.setConfigValue(val);
+                configService.updateConfig(old);
+            } else {
+                com.cms.system.domain.SysConfig cfg = new com.cms.system.domain.SysConfig();
+                cfg.setConfigKey(key); cfg.setConfigValue(val);
+                cfg.setConfigName(key); cfg.setConfigType("Y");
+                cfg.setCreateBy(ctx.session("userName"));
+                configService.insertConfig(cfg);
+            }
+        }
+        return success();
+    }
+
+    /** 网站设置页面 */
+    @Get
+    @Mapping("/site")
+    public void site(Context ctx) {
+        ctx.render("site.html");
     }
 }

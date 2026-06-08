@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>网站设置</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:20px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px}
+.section-header{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;font-weight:600;font-size:14px;color:#333}
+.section-header .mdi{font-size:18px;color:#4facfe;margin-right:8px}
+.section-body{padding:25px}
+.form-group{margin-bottom:18px}
+.form-group label{font-weight:600;font-size:13px;color:#555;margin-bottom:5px}
+.form-group .hint{font-size:11px;color:#aaa;margin-top:3px}
+.form-control{border-radius:4px;border:1px solid #ddd;font-size:13px;padding:8px 12px;transition:all 0.2s}
+.form-control:focus{border-color:#4facfe;box-shadow:0 0 0 3px rgba(79,172,254,0.1)}
+textarea.form-control{min-height:80px;resize:vertical}
+.btn-primary{background:#4facfe;border-color:#4facfe;border-radius:4px;padding:10px 30px;font-size:14px;font-weight:500}
+.btn-outline-secondary{border-radius:4px}
+.form-row{display:flex;gap:20px;flex-wrap:wrap}
+.form-row .form-group{flex:1;min-width:250px}
+.logo-preview{width:150px;height:50px;border:2px dashed #e0e0e0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#ccc;margin-top:5px;font-size:12px}
+</style>
+</head>
+<body>
+
+<form id="siteForm">
+<!-- 基本信息 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-web"></span> 基本信息</div>
+  <div class="section-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label>网站名称</label>
+        <input type="text" class="form-control" name="siteName" id="siteName" placeholder="如：洛阳钧科机电设备有限公司">
+        <div class="hint">显示在浏览器标题栏和页面左上角</div>
+      </div>
+      <div class="form-group">
+        <label>网站域名</label>
+        <input type="text" class="form-control" name="siteDomain" id="siteDomain" placeholder="如：www.junkekeji.com">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>网站Logo</label>
+        <input type="text" class="form-control" name="siteLogo" id="siteLogo" placeholder="Logo图片路径，如 /static/images/logo.png">
+        <div class="logo-preview" id="logoPreview">Logo预览</div>
+      </div>
+      <div class="form-group">
+        <label>网站Favicon</label>
+        <input type="text" class="form-control" name="siteFavicon" id="siteFavicon" placeholder="如 /favicon.ico">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 联系方式 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-phone-classic"></span> 联系方式</div>
+  <div class="section-body">
+    <div class="form-row">
+      <div class="form-group"><label>公司名称</label><input type="text" class="form-control" name="companyName" id="companyName" placeholder="企业全称"></div>
+      <div class="form-group"><label>联系电话</label><input type="text" class="form-control" name="contactPhone" id="contactPhone" placeholder="如：0379-88888888"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>联系邮箱</label><input type="text" class="form-control" name="contactEmail" id="contactEmail" placeholder="如：info@junkekeji.com"></div>
+      <div class="form-group"><label>客服热线</label><input type="text" class="form-control" name="servicePhone" id="servicePhone" placeholder="400或手机号"></div>
+    </div>
+    <div class="form-group"><label>公司地址</label><input type="text" class="form-control" name="companyAddress" id="companyAddress" placeholder="详细地址"></div>
+  </div>
+</div>
+
+<!-- SEO设置 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-magnify"></span> SEO默认设置</div>
+  <div class="section-body">
+    <div class="form-group"><label>首页SEO标题</label><input type="text" class="form-control" name="seoTitle" id="seoTitle" placeholder="浏览器标题栏显示的标题"></div>
+    <div class="form-group"><label>首页SEO关键词</label><input type="text" class="form-control" name="seoKeywords" id="seoKeywords" placeholder="多个关键词用逗号分隔"></div>
+    <div class="form-group"><label>首页SEO描述</label><textarea class="form-control" name="seoDescription" id="seoDescription" placeholder="搜索引擎结果中显示的描述文字（建议80-120字）"></textarea></div>
+  </div>
+</div>
+
+<!-- 备案信息 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-shield-check"></span> 备案与合规</div>
+  <div class="section-body">
+    <div class="form-row">
+      <div class="form-group"><label>ICP备案号</label><input type="text" class="form-control" name="icpNo" id="icpNo" placeholder="如：豫ICP备XXXXXXXX号"></div>
+      <div class="form-group"><label>公安备案号</label><input type="text" class="form-control" name="policeNo" id="policeNo" placeholder="如：豫公网安备 XXXX号"></div>
+    </div>
+    <div class="form-group"><label>版权信息</label><input type="text" class="form-control" name="copyright" id="copyright" placeholder="如：Copyright &copy; 2010-2024 洛阳钧科机电设备有限公司"></div>
+    <div class="form-group"><label>第三方统计代码</label><textarea class="form-control" name="statCode" id="statCode" placeholder="百度统计/Google Analytics等JS代码"></textarea><div class="hint">粘贴第三方统计平台提供的JS代码，将插入到页面&lt;/body&gt;前</div></div>
+  </div>
+</div>
+
+<!-- 社交链接 -->
+<div class="section">
+  <div class="section-header"><span class="mdi mdi-share-variant"></span> 社交与其它</div>
+  <div class="section-body">
+    <div class="form-row">
+      <div class="form-group"><label>微信公众号</label><input type="text" class="form-control" name="wechatQr" id="wechatQr" placeholder="公众号二维码图片路径"></div>
+      <div class="form-group"><label>企业微信</label><input type="text" class="form-control" name="wework" id="wework" placeholder="企业微信/客服链接"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>微博链接</label><input type="text" class="form-control" name="weibo" id="weibo" placeholder="微博主页URL"></div>
+      <div class="form-group"><label>抖音号</label><input type="text" class="form-control" name="douyin" id="douyin" placeholder="抖音号或主页链接"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 保存按钮 -->
+<div style="text-align:center;padding:20px 0 40px">
+  <button type="submit" class="btn btn-primary"><span class="mdi mdi-content-save"></span> 保存全部设置</button>
+  <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()" style="margin-left:10px"><span class="mdi mdi-refresh"></span> 重置</button>
+</div>
+
+</form>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+$(function(){
+  // 加载已有配置
+  $.get('/system/config/list', function(res){
+    if(res.code === 0 && res.rows){
+      var data = {};
+      res.rows.forEach(function(item){
+        if(item.configKey && item.configKey.startsWith('site.')){
+          data[item.configKey] = item.configValue;
+        }
+      });
+      // 填充表单
+      setVal('siteName', data['site.name']);
+      setVal('siteDomain', data['site.domain']);
+      setVal('siteLogo', data['site.logo']);
+      setVal('siteFavicon', data['site.favicon']);
+      setVal('companyName', data['site.companyName']);
+      setVal('contactPhone', data['site.contactPhone']);
+      setVal('contactEmail', data['site.contactEmail']);
+      setVal('servicePhone', data['site.servicePhone']);
+      setVal('companyAddress', data['site.companyAddress']);
+      setVal('seoTitle', data['site.seoTitle']);
+      setVal('seoKeywords', data['site.seoKeywords']);
+      setVal('seoDescription', data['site.seoDescription']);
+      setVal('icpNo', data['site.icpNo']);
+      setVal('policeNo', data['site.policeNo']);
+      setVal('copyright', data['site.copyright']);
+      setVal('statCode', data['site.statCode']);
+      setVal('wechatQr', data['site.wechatQr']);
+      setVal('wework', data['site.wework']);
+      setVal('weibo', data['site.weibo']);
+      setVal('douyin', data['site.douyin']);
+    }
+  });
+});
+
+function setVal(id, val){ if(val) $('#'+id).val(val); }
+
+$('#siteForm').on('submit', function(e){
+  e.preventDefault();
+  var configs = [];
+  var fields = [
+    {key:'site.name', id:'siteName'},
+    {key:'site.domain', id:'siteDomain'},
+    {key:'site.logo', id:'siteLogo'},
+    {key:'site.favicon', id:'siteFavicon'},
+    {key:'site.companyName', id:'companyName'},
+    {key:'site.contactPhone', id:'contactPhone'},
+    {key:'site.contactEmail', id:'contactEmail'},
+    {key:'site.servicePhone', id:'servicePhone'},
+    {key:'site.companyAddress', id:'companyAddress'},
+    {key:'site.seoTitle', id:'seoTitle'},
+    {key:'site.seoKeywords', id:'seoKeywords'},
+    {key:'site.seoDescription', id:'seoDescription'},
+    {key:'site.icpNo', id:'icpNo'},
+    {key:'site.policeNo', id:'policeNo'},
+    {key:'site.copyright', id:'copyright'},
+    {key:'site.statCode', id:'statCode'},
+    {key:'site.wechatQr', id:'wechatQr'},
+    {key:'site.wework', id:'wework'},
+    {key:'site.weibo', id:'weibo'},
+    {key:'site.douyin', id:'douyin'}
+  ];
+  fields.forEach(function(f){
+    configs.push({configKey: f.key, configValue: $('#'+f.id).val() || ''});
+  });
+
+  $.ajax({
+    url: '/system/config/batchSave',
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(configs),
+    success: function(res){
+      if(res.code === 0){
+        layer.msg('网站设置保存成功', {icon:1});
+      } else {
+        layer.msg('保存失败: ' + (res.msg || ''), {icon:2});
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
