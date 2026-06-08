@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>Banner管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.form-inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.preview-bar{display:flex;align-items:center;padding:6px 10px;border-radius:4px;color:#fff;font-size:12px;min-width:200px}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="section-header"><strong>Banner轮播图管理</strong>
+    <div><button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button></div>
+  </div>
+  <div class="section-body">
+    <div class="form-inline" style="margin-bottom:15px">
+      <input class="form-control" id="searchTitle" placeholder="标题" style="width:200px">
+      <button class="btn btn-primary" onclick="window.location.href='?title='+encodeURIComponent($('#searchTitle').val())"><span class="mdi mdi-magnify"></span> 搜索</button>
+    </div>
+    <table class="table table-hover"><thead><tr><th>#</th><th>预览</th><th>标题</th><th>链接</th><th>排序</th><th>状态</th><th width="120">操作</th></tr></thead><tbody>
+    <% if(list != null && list.~size > 0) { var idx = 0; for(var item in list) { idx = idx+1; %>
+    <tr>
+      <td>${idx}</td>
+      <td><div class="preview-bar" style="background:${item.bgColor!item.bg_color!'#0d2137'}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.title}</span></div></td>
+      <td>${item.title}</td>
+      <td><small>${item.linkUrl!item.link_url!''}</small></td>
+      <td>${item.sortNum!item.sort_num!0}</td>
+      <td><span class="badge ${item.status=='0'?'badge-success':'badge-danger'}">${item.status=='0'?'启用':'停用'}</span></td>
+      <td>
+        <button class="btn btn-primary btn-sm" onclick="openEdit('${item.bannerId!item.banner_id}')"><span class="mdi mdi-pencil"></span></button>
+        <button class="btn btn-danger btn-sm" onclick="doDelete('${item.bannerId!item.banner_id}')"><span class="mdi mdi-delete"></span></button>
+      </td>
+    </tr>
+    <% } } else { %>
+    <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无Banner</td></tr>
+    <% } %>
+    </tbody></table>
+
+    <% if(totalPages > 1) { %>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
+      <span>共 <b>${total!0}</b> 条</span>
+      <div style="display:flex;gap:4px">
+        <% if(pageNum > 1) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=1&pageSize=${pageSize!10}<% if(title!=null){ %>&title=${title}<% } %>'">首页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum-1}&pageSize=${pageSize!10}<% if(title!=null){ %>&title=${title}<% } %>'">上一页</button>
+        <% } %>
+        <span style="line-height:30px;margin:0 8px">第 ${pageNum!1} / ${totalPages!1} 页</span>
+        <% if(pageNum < totalPages) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum+1}&pageSize=${pageSize!10}<% if(title!=null){ %>&title=${title}<% } %>'">下一页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${totalPages}&pageSize=${pageSize!10}<% if(title!=null){ %>&title=${title}<% } %>'">末页</button>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="modal fade" id="formModal">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="modalTitle">新增Banner</h5><button class="close" data-dismiss="modal">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label>标题</label><input class="form-control" id="title" placeholder="主标题文字"></div>
+      <div class="form-group"><label>副标题</label><input class="form-control" id="subtitle" placeholder="副标题文字"></div>
+      <div class="form-group"><label>链接地址</label><input class="form-control" id="linkUrl" placeholder="点击跳转URL"></div>
+      <div class="form-group"><label>背景色</label><input class="form-control" id="bgColor" value="#0d2137" placeholder="如 #0d2137 或 linear-gradient(...)"></div>
+      <div class="row"><div class="col-6 form-group"><label>排序</label><input class="form-control" type="number" id="sortNum" value="0"></div><div class="col-6 form-group"><label>状态</label><select class="form-control" id="status"><option value="0">启用</option><option value="1">停用</option></select></div></div>
+      <div class="form-group"><label>位置</label><select class="form-control" id="position"><option value="home">首页</option><option value="about">关于我们</option><option value="products">产品中心</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-dismiss="modal">取消</button><button class="btn btn-primary" onclick="save()">保存</button></div>
+  </div></div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var isEdit=false;
+function openAdd(){isEdit=false;$('#editId').val('');$('#title,#subtitle,#linkUrl').val('');$('#bgColor').val('#0d2137');$('#sortNum').val('0');$('#status').val('0');$('#position').val('home');$('#modalTitle').text('新增Banner');$('#formModal').modal('show')}
+function openEdit(id){isEdit=true;$.get('/cms/banner/detail?id='+id,function(res){if(res.code===0){var d=res.data;$('#editId').val(d.bannerId||d.banner_id);$('#title').val(d.title);$('#subtitle').val(d.subtitle);$('#linkUrl').val(d.linkUrl||d.link_url);$('#bgColor').val(d.bgColor||d.bg_color||'#0d2137');$('#sortNum').val(d.sortNum||d.sort_num||0);$('#status').val(d.status);$('#position').val(d.position||'home');$('#modalTitle').text('编辑Banner');$('#formModal').modal('show')}})}
+function save(){var d={bannerId:$('#editId').val(),title:$('#title').val(),subtitle:$('#subtitle').val(),linkUrl:$('#linkUrl').val(),bgColor:$('#bgColor').val(),sortNum:$('#sortNum').val(),status:$('#status').val(),position:$('#position').val()};$.post('/cms/banner/'+(isEdit?'edit':'add'),d,function(res){if(res.code===0){layer.msg('保存成功',{icon:1});$('#formModal').modal('hide');setTimeout(function(){window.location.reload()},500)}else{layer.msg(res.msg||'操作失败',{icon:2})}})}
+function doDelete(id){layer.confirm('确认删除？',function(idx){layer.close(idx);$.post('/cms/banner/delete',{ids:id},function(res){if(res.code===0){layer.msg('删除成功');setTimeout(function(){window.location.reload()},500)}})})}
+</script>
+</body></html>

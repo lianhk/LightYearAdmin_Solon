@@ -529,3 +529,29 @@ INSERT INTO cms_template VALUES (2, '默认文章模板', 'default-article', '1'
 UPDATE sys_menu SET path = '/cms/category' WHERE menu_id = 110;
 UPDATE sys_menu SET path = '/cms/article' WHERE menu_id = 111;
 UPDATE sys_menu SET path = '/cms/template' WHERE menu_id = 112;
+-- Banner表
+DROP TABLE IF EXISTS cms_banner;
+CREATE TABLE cms_banner (
+  banner_id bigint(20) NOT NULL AUTO_INCREMENT,
+  title varchar(200) DEFAULT '' COMMENT '标题',
+  subtitle varchar(500) DEFAULT '' COMMENT '副标题',
+  image_url varchar(500) DEFAULT '' COMMENT '图片URL',
+  link_url varchar(500) DEFAULT '' COMMENT '链接地址',
+  bg_color varchar(100) DEFAULT '#0d2137' COMMENT '背景色',
+  sort_num int(4) DEFAULT 0 COMMENT '排序',
+  status char(1) DEFAULT '0' COMMENT '状态(0启用 1停用)',
+  position varchar(50) DEFAULT 'home' COMMENT '位置',
+  create_by varchar(64) DEFAULT '',
+  create_time datetime DEFAULT NULL,
+  update_by varchar(64) DEFAULT '',
+  update_time datetime DEFAULT NULL,
+  PRIMARY KEY (banner_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Banner轮播图表';
+
+INSERT INTO cms_banner VALUES (1, '专业机电设备解决方案提供商', '专注于工业自动化 · 电机维修 · 配电系统 · 变频改造', '', '/products', 'linear-gradient(135deg,#0d2137 0%,#1a3a5c 50%,#0d2137 100%)', 1, '0', 'home', 'admin', NOW(), '', NULL);
+INSERT INTO cms_banner VALUES (2, '十五年行业经验 · 品质值得信赖', '服务客户超过500家 · 项目覆盖中原地区', '', '/about', 'linear-gradient(135deg,#1a2d1a 0%,#2d4a2d 50%,#1a2d1a 100%)', 2, '0', 'home', 'admin', NOW(), '', NULL);
+INSERT INTO cms_banner VALUES (3, '技术驱动 · 创新引领未来', '德国进口检测设备 · 专业技术团队 · 快速响应服务', '', '/products', 'linear-gradient(135deg,#1a1a3d 0%,#2d2d5c 50%,#1a1a3d 100%)', 3, '0', 'home', 'admin', NOW(), '', NULL);
+
+-- Banner管理菜单(归属于CMS管理)
+INSERT INTO sys_menu VALUES (113, 'Banner管理', 100, 4, '/cms/banner', '', '', '', 1, 0, 'C', '0', '0', 'cms:banner:list', 'mdi mdi-image-multiple', 'admin', NOW(), '', '');
+INSERT INTO sys_role_menu VALUES (1, 113);

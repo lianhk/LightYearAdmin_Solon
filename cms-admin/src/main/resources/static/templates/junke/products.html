@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>产品中心 - 洛阳钧科机电设备有限公司</title>
+<meta name="keywords" content="电机,变频器,PLC控制柜,工业自动化,水泵,仪表,电缆">
+<meta name="description" content="洛阳钧科机电设备有限公司产品中心，涵盖电机、变频器、PLC控制柜、自动化设备、水泵、仪器仪表、电缆桥架等。">
+<link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="../lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+<style>
+.filter-bar{margin-bottom:40px;text-align:center}
+.filter-bar .btn-filter{padding:10px 24px;margin:5px 6px;border:1px solid #ddd;background:#fff;color:var(--text);font-size:14px;border-radius:3px;cursor:pointer;transition:all 0.3s;letter-spacing:1px}
+.filter-bar .btn-filter:hover,.filter-bar .btn-filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* 产品弹窗 */
+.product-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s}
+.product-modal-overlay.show{opacity:1;visibility:visible}
+.product-modal{background:#fff;border-radius:6px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;padding:0;position:relative}
+.product-modal .modal-header{padding:25px 30px 15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.product-modal .modal-header h4{font-size:20px;color:var(--primary);margin:0;font-weight:600}
+.product-modal .modal-close{background:none;border:none;font-size:28px;color:var(--text-light);cursor:pointer;transition:color 0.3s;line-height:1}
+.product-modal .modal-close:hover{color:var(--accent)}
+.product-modal .modal-body{padding:25px 30px}
+.product-modal .modal-body .desc{font-size:14px;color:#555;line-height:2;margin-bottom:25px}
+.product-modal .modal-body .param-table{width:100%;border-collapse:collapse}
+.product-modal .modal-body .param-table th,.product-modal .modal-body .param-table td{padding:12px 15px;border:1px solid #eee;font-size:13px}
+.product-modal .modal-body .param-table th{background:var(--bg-light);color:var(--primary);font-weight:600;width:30%;text-align:right}
+.product-modal .modal-body .param-table td{color:#555}
+.product-modal .modal-footer{padding:15px 30px 25px;text-align:center}
+.product-modal .modal-footer .btn-close-modal{padding:10px 40px;background:var(--accent);color:#fff;border:none;border-radius:3px;font-size:14px;letter-spacing:1px;cursor:pointer;transition:background 0.3s}
+.product-modal .modal-footer .btn-close-modal:hover{background:#b8953e}
+</style>
+</head>
+<body>
+
+<!-- 顶部信息栏 -->
+<div class="top-bar">
+  <div class="container d-flex justify-content-between">
+    <div><a href="tel:0379-88888888"><span class="mdi mdi-phone"></span> 0379-8888 8888</a><a href="mailto:info@junkekeji.com"><span class="mdi mdi-email"></span> info@junkekeji.com</a></div>
+    <div><span class="mdi mdi-clock"></span> 周一至周六 8:00-18:00</div>
+  </div>
+</div>
+<nav class="navbar navbar-expand-lg" style="background:var(--primary);padding:0"><div class="container">
+<a class="navbar-brand" href="index.html">钧科机电<span class="sub">JUNKE ELECTROMECHANICAL</span></a>
+<button class="navbar-toggler" data-toggle="collapse" data-target="#navMenu"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="navMenu"><ul class="navbar-nav ml-auto">
+<li class="nav-item"><a class="nav-link" href="index.html">网站首页</a></li>
+<li class="nav-item"><a class="nav-link" href="about.html">关于我们</a></li>
+<li class="nav-item"><a class="nav-link active" href="products.html">产品中心</a></li>
+<li class="nav-item"><a class="nav-link" href="news.html">新闻动态</a></li>
+<li class="nav-item"><a class="nav-link" href="cases.html">工程案例</a></li>
+<li class="nav-item"><a class="nav-link" href="contact.html">联系我们</a></li>
+</ul></div></div></nav>
+
+<!-- 内页Banner -->
+<div class="page-banner"><div class="container"><h1>产品中心</h1><nav class="breadcrumb"><a href="index.html">首页</a><span style="margin:0 8px">/</span><span>产品中心</span></nav></div></div>
+
+<!-- 产品中心 -->
+<div class="section">
+  <div class="container">
+    <div class="filter-bar">
+      <button class="btn-filter active" data-filter="all">全部产品</button>
+      <button class="btn-filter" data-filter="motor">电机系列</button>
+      <button class="btn-filter" data-filter="inverter">变频器</button>
+      <button class="btn-filter" data-filter="control">控制柜</button>
+      <button class="btn-filter" data-filter="automation">自动化</button>
+      <button class="btn-filter" data-filter="pump">水泵</button>
+      <button class="btn-filter" data-filter="instrument">仪表</button>
+      <button class="btn-filter" data-filter="cable">电缆</button>
+    </div>
+    <div class="row" id="productList">
+      <!-- 1. 三相异步电机 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="motor">
+        <div class="product-card" onclick="openProductDetail(0)">
+          <div class="img-wrap"><span class="mdi mdi-engine"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>三相异步电机</h4><p>Y/Y2/YE3系列高效电机，适用于各种工业驱动场景</p><div class="tags"><span class="tag">YE3</span><span class="tag">IE3能效</span></div></div>
+        </div>
+      </div>
+      <!-- 2. 高压变频器 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="inverter">
+        <div class="product-card" onclick="openProductDetail(1)">
+          <div class="img-wrap"><span class="mdi mdi-current-ac"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>高压变频器</h4><p>6kV/10kV高压变频调速系统，节能降耗效果显著</p><div class="tags"><span class="tag">6kV</span><span class="tag">10kV</span></div></div>
+        </div>
+      </div>
+      <!-- 3. PLC控制柜 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="control">
+        <div class="product-card" onclick="openProductDetail(2)">
+          <div class="img-wrap"><span class="mdi mdi-developer-board"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>PLC控制柜</h4><p>西门子/三菱PLC控制系统，定制化电气控制解决方案</p><div class="tags"><span class="tag">西门子</span><span class="tag">定制</span></div></div>
+        </div>
+      </div>
+      <!-- 4. 工业机器人 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="automation">
+        <div class="product-card" onclick="openProductDetail(3)">
+          <div class="img-wrap"><span class="mdi mdi-robot-industrial"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>工业机器人</h4><p>焊接/搬运/喷涂机器人，提升生产线自动化水平</p><div class="tags"><span class="tag">KUKA</span><span class="tag">FANUC</span></div></div>
+        </div>
+      </div>
+      <!-- 5. 离心泵 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="pump">
+        <div class="product-card" onclick="openProductDetail(4)">
+          <div class="img-wrap"><span class="mdi mdi-pump"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>离心泵</h4><p>单级/多级离心泵，适用于供水、排水及工业循环系统</p><div class="tags"><span class="tag">凯泉</span><span class="tag">南方泵业</span></div></div>
+        </div>
+      </div>
+      <!-- 6. 压力变送器 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="instrument">
+        <div class="product-card" onclick="openProductDetail(5)">
+          <div class="img-wrap"><span class="mdi mdi-gauge"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>压力变送器</h4><p>高精度压力/差压变送器，4-20mA/HART协议输出</p><div class="tags"><span class="tag">E+H</span><span class="tag">4-20mA</span></div></div>
+        </div>
+      </div>
+      <!-- 7. 电力电缆 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="cable">
+        <div class="product-card" onclick="openProductDetail(6)">
+          <div class="img-wrap"><span class="mdi mdi-cable-data"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>电力电缆</h4><p>YJV/YJV22交联聚乙烯绝缘电力电缆，规格齐全</p><div class="tags"><span class="tag">YJV</span><span class="tag">阻燃</span></div></div>
+        </div>
+      </div>
+      <!-- 8. 防爆电机 -->
+      <div class="col-lg-3 col-md-6 product-item" data-category="motor">
+        <div class="product-card" onclick="openProductDetail(7)">
+          <div class="img-wrap"><span class="mdi mdi-shield-alert"></span><div class="overlay"><span>查看详情</span></div></div>
+          <div class="info"><h4>防爆电机</h4><p>YB3/YBX3系列防爆电机，适用于煤矿化工等危险场所</p><div class="tags"><span class="tag">YBX3</span><span class="tag">ExdIICT4</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 产品详情弹窗 -->
+<div class="product-modal-overlay" id="productModal">
+  <div class="product-modal">
+    <div class="modal-header">
+      <h4 id="modalTitle">产品名称</h4>
+      <button class="modal-close" onclick="closeProductDetail()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="desc" id="modalDesc"></p>
+      <table class="param-table" id="modalParams"></table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-close-modal" onclick="closeProductDetail()">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-4 mb-4">
+        <h5>关于我们</h5>
+        <p style="line-height:2.2">洛阳钧科机电设备有限公司，成立于2010年，专业从事机电设备销售、安装调试、维修保养、技术改造。公司坐落于洛阳市高新技术产业开发区。</p>
+        <div style="margin-top:20px;display:flex;gap:12px">
+          <span style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.5);transition:all 0.3s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.5)';this.style.borderColor='rgba(255,255,255,0.2)'"><span class="mdi mdi-wechat"></span></span>
+          <span style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.5);transition:all 0.3s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.5)';this.style.borderColor='rgba(255,255,255,0.2)'"><span class="mdi mdi-sina-weibo"></span></span>
+          <span style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.5);transition:all 0.3s" onmouseover="this.style.background='var(--accent)';this.style.color='#fff';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='';this.style.color='rgba(255,255,255,0.5)';this.style.borderColor='rgba(255,255,255,0.2)'"><span class="mdi mdi-qqchat"></span></span>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>快速导航</h5>
+        <div class="footer-links">
+          <a href="about.html">公司简介</a><a href="products.html">产品中心</a>
+          <a href="news.html">新闻动态</a><a href="cases.html">工程案例</a>
+          <a href="contact.html">联系我们</a><a href="#">在线留言</a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>产品分类</h5>
+        <div class="footer-links">
+          <a href="#">电机系列</a><a href="#">变频器系列</a>
+          <a href="#">PLC控制柜</a><a href="#">自动化设备</a>
+          <a href="#">水泵系列</a><a href="#">仪器仪表</a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-md-6 mb-4">
+        <h5>联系我们</h5>
+        <div class="footer-contact">
+          <div class="item"><span class="mdi mdi-map-marker"></span><span>洛阳市高新技术产业开发区</span></div>
+          <div class="item"><span class="mdi mdi-phone"></span><span>0379-8888 8888</span></div>
+          <div class="item"><span class="mdi mdi-email"></span><span>info@junkekeji.com</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container text-center">
+      Copyright &copy; 2010-2024 洛阳钧科机电设备有限公司 All Rights Reserved. <a href="https://beian.miit.gov.cn">豫ICP备XXXXXXXX号</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../lib/jquery/jquery.min.js"></script>
+<script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script>
+// 产品数据
+var products = [
+  {name:'三相异步电机',desc:'YE3系列超高效三相异步电动机，符合IEC60034-30标准，达到IE3超高效能效等级。采用优质冷轧硅钢片和F级绝缘材料，具有效率高、温升低、噪音小、振动小、可靠性高等特点。广泛应用于风机、水泵、压缩机、输送机等通用机械设备驱动。<br><br>我公司提供Y/Y2/YE3/YE4等全系列产品，功率范围0.75kW~315kW，支持多种安装方式和防护等级定制。',
+   params:[['型号系列','YE3-80~355'],['额定功率','0.75kW~315kW'],['额定电压','380V/660V/1140V'],['能效等级','IE3 (超高效)'],['防护等级','IP55'],['绝缘等级','F级'],['冷却方式','IC411'],['安装方式','B3/B5/B35']]},
+  {name:'高压变频器',desc:'高压变频调速系统适用于6kV/10kV电压等级的高压电机调速控制。采用单元串联多电平拓扑结构，输入功率因数高(>0.95)，输出波形接近正弦波，对电网谐波污染小，可直接驱动普通高压异步电机。<br><br>系统具备完善的保护功能和友好的人机界面，广泛应用于火力发电、冶金、石油化工、供水等行业的风机、水泵等平方转矩负载的调速节能改造，节电率可达20%~50%。',
+   params:[['电压等级','6kV / 10kV'],['功率范围','200kW~10000kW'],['输入功率因数','>0.95'],['整机效率','>96%'],['冷却方式','强迫风冷/水冷'],['控制方式','V/F / 矢量控制'],['通信接口','RS485/Profibus/Modbus']]},
+  {name:'PLC控制柜',desc:'PLC控制柜是集可编程逻辑控制器、低压电器、人机界面等于一体的电气控制成套设备。我公司可提供基于西门子S7-200SMART/S7-1200/S7-1500、三菱FX/Q系列等主流PLC品牌的控制柜设计与制造。<br><br>控制柜结构紧凑、布局合理、接线规范、标识清晰，具备过载/短路/漏电保护功能。配套提供电气原理图、接线图、操作说明书等全套技术文档及现场调试服务。广泛应用于生产线自动控制、水处理、暖通空调、输送系统等领域。',
+   params:[['PLC品牌','西门子/三菱/欧姆龙'],['柜体尺寸','定制（GGD/XL-21等）'],['防护等级','IP30~IP54'],['输入电压','AC380V/220V'],['控制电压','DC24V'],['HMI屏幕','7寸/10寸/15寸触摸屏'],['通信方式','以太网/Profibus/Modbus']]},
+  {name:'工业机器人',desc:'提供KUKA、FANUC、ABB等国际知名品牌工业机器人系统集成服务，涵盖弧焊、点焊、搬运码垛、喷涂、打磨抛光等应用领域。<br><br>我公司技术团队具备丰富的机器人编程调试经验，可提供从方案设计、系统集成、安装调试到人员培训的全流程服务。配套提供机器人工作站周边设备：变位机、工装夹具、安全围栏、除尘系统等。',
+   params:[['品牌','KUKA / FANUC / ABB'],['负载范围','3kg~500kg'],['工作半径','600mm~3200mm'],['重复定位精度','±0.02mm~±0.05mm'],['轴数','4轴/6轴'],['防护等级','IP54/IP67'],['应用类型','焊接/搬运/喷涂/打磨']]},
+  {name:'离心泵',desc:'单级/多级离心泵系列产品，涵盖清水离心泵、化工离心泵、管道离心泵等类型。泵体采用优质铸铁/不锈钢材质，配备高效叶轮，具有高效节能、运行稳定、维修方便等优点。<br><br>可配套提供电机、底座、进出口法兰等配件，支持根据用户工况参数进行设备选型和管路设计。广泛应用于建筑给排水、空调循环水、消防供水、工业冷却循环等场合。',
+   params:[['泵类型','单级单吸/多级离心泵'],['口径范围','DN25~DN500'],['流量范围','2~2000m³/h'],['扬程范围','5~300m'],['材质','铸铁/不锈钢304/316L'],['密封方式','机械密封/填料密封'],['配套电机','Y/YE3系列']]},
+  {name:'压力变送器',desc:'高精度压力/差压变送器，采用进口传感器芯片，性能稳定可靠。支持表压、绝压、差压测量，输出4-20mA标准信号，可选HART协议进行远程参数设置与诊断。<br><br>产品具有高精度(0.075%)、高稳定性、温度补偿范围宽等特点。不锈钢隔离膜片，防腐蚀性能好。可配套数显表头、安装支架等附件，适用于石油化工、电力、水处理等行业的过程压力测量与控制。',
+   params:[['测量范围','0~60MPa'],['输出信号','4-20mA/HART'],['精度等级','0.075%/0.1%'],['电源','DC 12~36V'],['防护等级','IP65/IP67'],['过程连接','M20×1.5 / 1/2NPT'],['防爆等级','ExiaIICT6']]},
+  {name:'电力电缆',desc:'YJV/YJV22交联聚乙烯绝缘电力电缆，采用无氧铜导体和交联聚乙烯(XLPE)绝缘，具有优良的电气性能和耐热性能。长期允许工作温度90℃，短路时最高温度250℃。<br><br>可提供阻燃(ZR-YJV)、耐火(NH-YJV)、低烟无卤(WDZ-YJV)等特种电缆。产品严格执行GB/T12706标准，提供出厂检测报告和合格证。适用于电力输配、工业配电、建筑供配电等场合。',
+   params:[['型号','YJV/YJV22/ZR-YJV'],['芯数','1芯/3芯/4芯/5芯'],['截面范围','1.5mm²~400mm²'],['额定电压','0.6/1kV'],['导体材质','无氧铜'],['绝缘材料','交联聚乙烯(XLPE)'],['执行标准','GB/T 12706']]},
+  {name:'防爆电机',desc:'YB3/YBX3系列隔爆型三相异步电机，适用于含有爆炸性气体混合物的危险场所。产品符合GB3836标准，防爆标志ExdIIBT4/ExdIICT4，取得国家防爆电气产品质量监督检验中心颁发的防爆合格证。<br><br>适用于煤矿井下(非采掘工作面)及化工厂、石油炼制、加油站等含有爆炸性气体环境的场所，可作为驱动风机、水泵、压缩机等设备的动力源。',
+   params:[['型号系列','YB3/YBX3-80~355'],['额定功率','0.75kW~315kW'],['防爆标志','ExdIIBT4 / ExdIICT4'],['防护等级','IP55'],['绝缘等级','F级/H级'],['额定电压','380V/660V'],['执行标准','GB3836 / IEC60079']]}
+];
+
+// 筛选功能
+document.querySelectorAll('.btn-filter').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.btn-filter').forEach(function(b){b.classList.remove('active')});
+    this.classList.add('active');
+    var filter = this.getAttribute('data-filter');
+    document.querySelectorAll('.product-item').forEach(function(item){
+      if(filter==='all' || item.getAttribute('data-category')===filter){
+        item.style.display='block';
+      }else{
+        item.style.display='none';
+      }
+    });
+  });
+});
+
+// 弹窗
+function openProductDetail(index){
+  var p = products[index];
+  document.getElementById('modalTitle').textContent = p.name;
+  document.getElementById('modalDesc').innerHTML = p.desc;
+  var html = '';
+  p.params.forEach(function(row){
+    html += '<tr><th>'+row[0]+'</th><td>'+row[1]+'</td></tr>';
+  });
+  document.getElementById('modalParams').innerHTML = html;
+  document.getElementById('productModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductDetail(){
+  document.getElementById('productModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('productModal').addEventListener('click',function(e){
+  if(e.target === this) closeProductDetail();
+});
+</script>
+</body>
+</html>
