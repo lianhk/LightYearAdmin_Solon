@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模板管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}.badge-info{background:#17a2b8;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+textarea.form-control{min-height:80px;resize:vertical}
+.code-textarea{font-family:"Consolas","Courier New",monospace;font-size:13px;line-height:1.6;min-height:400px}
+.modal-lg2{max-width:900px}
+label{font-size:13px;color:#666;margin-bottom:4px}
+.code-file{font-family:"Consolas","Courier New",monospace;font-size:12px;background:#f5f5f5;padding:2px 8px;border-radius:3px;color:#555}
+</style>
+</head>
+<body>
+
+<!-- 列表区 -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-file-code"></span> 模板列表</span>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button>
+  </div>
+  <div class="section-body" style="padding:0">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th>模板名称</th>
+          <th style="width:140px">模板编码</th>
+          <th style="width:100px">类型</th>
+          <th>文件路径</th>
+          <th style="width:140px">更新时间</th>
+          <th style="width:200px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(list != null && list.~size > 0) { %>
+          <% for(var item in list) { %>
+          <tr>
+            <td>${itemLP.index}</td>
+            <td>${item.tplName}</td>
+            <td><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:12px">${item.tplCode}</code></td>
+            <td>
+              <% if(item.tplType == 'list') { %>
+                <span class="badge badge-info">列表</span>
+              <% } else if(item.tplType == 'article') { %>
+                <span class="badge badge-success">文章</span>
+              <% } else { %>
+                <span class="badge" style="background:#aaa;color:#fff">通用</span>
+              <% } %>
+            </td>
+            <td><span class="code-file">${item.tplPath!''}</span></td>
+            <td>${item.updateTime!item.createTime!''}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openCodeEditor('${item.tplId}')" title="编辑模板代码"><span class="mdi mdi-code-braces"></span></button>
+              <button class="btn btn-success btn-sm" onclick="openEdit('${item.tplId}')" style="background:#43e97b;border-color:#43e97b;color:#fff" title="编辑信息"><span class="mdi mdi-pencil"></span></button>
+              <button class="btn btn-danger btn-sm" onclick="doDelete('${item.tplId}')" style="background:#fa709a;border-color:#fa709a;color:#fff" title="删除"><span class="mdi mdi-delete"></span></button>
+            </td>
+          </tr>
+          <% } %>
+        <% } else { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无数据</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
+      <span>共 <b>${total!0}</b> 条记录</span>
+      <div style="display:flex;gap:4px">
+        <% if(pageNum > 1) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=1&pageSize=${pageSize!10}'">首页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum-1}&pageSize=${pageSize!10}'">上一页</button>
+        <% } %>
+        <span style="line-height:30px;margin:0 8px">第 <b>${pageNum!1}</b> / <b>${totalPages!1}</b> 页</span>
+        <% if(pageNum < totalPages) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${pageNum+1}&pageSize=${pageSize!10}'">下一页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='?pageNum=${totalPages}&pageSize=${pageSize!10}'">末页</button>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑信息弹窗 -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">新增模板</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editTplId">
+        <div class="form-group">
+          <label>模板名称 <span style="color:red">*</span></label>
+          <input type="text" class="form-control" id="tplName" placeholder="请输入模板名称">
+        </div>
+        <div class="form-group">
+          <label>模板编码 <span style="color:red">*</span></label>
+          <input type="text" class="form-control" id="tplCode" placeholder="请输入唯一编码">
+        </div>
+        <div class="form-group">
+          <label>模板类型</label>
+          <select class="form-control" id="tplType">
+            <option value="list">列表模板</option>
+            <option value="article">文章模板</option>
+            <option value="common">通用模板</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>文件路径</label>
+          <input type="text" class="form-control" id="tplPath" placeholder="如 /templates/news/list.html">
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea class="form-control" id="description" rows="3" placeholder="模板描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-control" id="status">
+            <option value="0">启用</option>
+            <option value="1">禁用</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 代码编辑弹窗 -->
+<div class="modal fade" id="codeModal" tabindex="-1">
+  <div class="modal-dialog modal-lg2">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="codeModalTitle"><span class="mdi mdi-code-braces"></span> 编辑模板代码</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="codeTplId">
+        <div style="margin-bottom:8px;font-size:13px;color:#888">
+          <span>模板文件: </span><span id="codeTplPath" class="code-file"></span>
+          <span style="margin-left:12px">模板名称: </span><span id="codeTplName" style="color:#333"></span>
+        </div>
+        <textarea class="form-control code-textarea" id="tplContent" placeholder="在此编辑Beetl模板代码..." wrap="off" style="white-space:pre"></textarea>
+        <div style="margin-top:8px;font-size:12px;color:#aaa">
+          <span class="mdi mdi-information-outline"></span> 支持 Beetl 模板语法。可以使用 <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">${}</code> <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">&lt;% %&gt;</code> 语法。
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitCode()"><span class="mdi mdi-content-save"></span> 保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var isEdit = false;
+
+// ===== 信息编辑 =====
+function openAdd(){
+  isEdit = false;
+  $('#modalTitle').text('新增模板');
+  $('#editTplId').val('');
+  $('#tplName').val('');
+  $('#tplCode').val('');
+  $('#tplType').val('list');
+  $('#tplPath').val('');
+  $('#description').val('');
+  $('#status').val('0');
+  $('#formModal').modal('show');
+}
+
+function openEdit(tplId){
+  isEdit = true;
+  $('#modalTitle').text('编辑模板信息');
+  $.get('/cms/template/detail?id=' + tplId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editTplId').val(data.tplId);
+      $('#tplName').val(data.tplName || '');
+      $('#tplCode').val(data.tplCode || '');
+      $('#tplType').val(data.tplType || 'list');
+      $('#tplPath').val(data.tplPath || '');
+      $('#description').val(data.description || '');
+      $('#status').val(data.status || '0');
+      $('#formModal').modal('show');
+    }
+  });
+}
+
+function submitForm(){
+  var url = isEdit ? '/cms/template/edit' : '/cms/template/add';
+  var data = {
+    tplId: $('#editTplId').val(),
+    tplName: $('#tplName').val(),
+    tplCode: $('#tplCode').val(),
+    tplType: $('#tplType').val(),
+    tplPath: $('#tplPath').val(),
+    description: $('#description').val(),
+    status: $('#status').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#formModal').modal('hide');
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+// ===== 代码编辑 =====
+function openCodeEditor(tplId){
+  $.get('/cms/template/detail?id=' + tplId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#codeTplId').val(data.tplId);
+      $('#codeTplName').text(data.tplName || '');
+      $('#codeTplPath').text(data.tplPath || '');
+      $('#tplContent').val(data.tplContent || '');
+      $('#codeModalTitle').html('<span class="mdi mdi-code-braces"></span> 编辑模板代码 - ' + (data.tplName || ''));
+      $('#codeModal').modal('show');
+    }
+  });
+}
+
+function submitCode(){
+  var tplId = $('#codeTplId').val();
+  var content = $('#tplContent').val();
+  $.post('/cms/template/saveContent', {tplId: tplId, tplContent: content}, function(res){
+    if(res.code === 0){
+      layer.msg('模板代码保存成功', {icon:1});
+      $('#codeModal').modal('hide');
+    }else{
+      layer.msg(res.msg || '保存失败', {icon:2});
+    }
+  });
+}
+
+// ===== 删除 =====
+function doDelete(tplId){
+  layer.confirm('确定要删除该模板吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/cms/template/delete', {tplId: tplId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

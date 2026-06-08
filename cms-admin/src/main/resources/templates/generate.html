@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>静态页生成</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.gen-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
+.gen-status{background:#fafafa;border-radius:6px;padding:15px;margin-bottom:15px}
+.gen-progress{margin-bottom:15px}
+.progress{height:22px;border-radius:11px;background:#e9ecef;overflow:hidden}
+.progress-bar{background:linear-gradient(90deg,#4facfe,#43e97b);transition:width 0.4s;line-height:22px;font-size:12px}
+.gen-log{border:1px solid #e8e8e8;border-radius:6px;background:#1e1e1e;color:#e0e0e0;padding:12px 15px;max-height:400px;overflow-y:auto;font-family:"Consolas","Courier New",monospace;font-size:12px;line-height:1.8;margin-top:10px}
+.gen-log .log-time{color:#888;margin-right:8px}
+.gen-log .log-info{color:#4facfe}
+.gen-log .log-success{color:#43e97b}
+.gen-log .log-error{color:#fa709a}
+.gen-log .log-warn{color:#f39c12}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:15px}
+.stat-card{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:18px;text-align:center}
+.stat-card .stat-value{font-size:28px;font-weight:600;color:#333}
+.stat-card .stat-label{font-size:12px;color:#888;margin-top:4px}
+.stat-card .stat-icon{font-size:24px;margin-bottom:6px}
+.stat-card.stat-total .stat-value{color:#4facfe}
+.stat-card.stat-success .stat-value{color:#43e97b}
+.stat-card.stat-fail .stat-value{color:#fa709a}
+.stat-card.stat-sitemap .stat-value{color:#f39c12}
+.domain-input{display:flex;align-items:center;gap:8px}
+.domain-input label{font-size:13px;color:#666;margin-bottom:0;white-space:nowrap}
+.domain-input input{width:260px}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-file-eye"></span> 静态页生成</span>
+  </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="stat-grid">
+  <div class="stat-card stat-total">
+    <div class="stat-icon mdi mdi-file-document" style="color:#4facfe"></div>
+    <div class="stat-value" id="statTotal">-</div>
+    <div class="stat-label">文章总数</div>
+  </div>
+  <div class="stat-card stat-success">
+    <div class="stat-icon mdi mdi-check-circle" style="color:#43e97b"></div>
+    <div class="stat-value" id="statSuccess">-</div>
+    <div class="stat-label">生成成功</div>
+  </div>
+  <div class="stat-card stat-fail">
+    <div class="stat-icon mdi mdi-close-circle" style="color:#fa709a"></div>
+    <div class="stat-value" id="statFail">-</div>
+    <div class="stat-label">生成失败</div>
+  </div>
+  <div class="stat-card stat-sitemap">
+    <div class="stat-icon mdi mdi-sitemap" style="color:#f39c12"></div>
+    <div class="stat-value" id="statSitemap">-</div>
+    <div class="stat-label">Sitemap状态</div>
+  </div>
+</div>
+
+<!-- 站点域名 -->
+<div class="section" style="background:#fafafa">
+  <div class="section-body">
+    <div class="domain-input">
+      <label><span class="mdi mdi-web"></span> 站点域名：</label>
+      <input type="text" class="form-control" id="domain" placeholder="如 https://www.example.com" value="${domain!'https://www.example.com'}">
+      <span style="font-size:12px;color:#aaa">用于生成 sitemap.xml 中的 URL</span>
+    </div>
+  </div>
+</div>
+
+<!-- 操作按钮 -->
+<div class="section">
+  <div class="section-body">
+    <div class="gen-actions">
+      <button class="btn btn-primary" onclick="generateAll()" style="height:38px;padding:0 24px">
+        <span class="mdi mdi-play-circle"></span> 全量生成
+      </button>
+      <button class="btn" onclick="generateSelected()" style="height:38px;padding:0 24px;background:#43e97b;border-color:#43e97b;color:#fff">
+        <span class="mdi mdi-checkbox-multiple-marked"></span> 选中生成
+      </button>
+      <button class="btn" onclick="generateSitemap()" style="height:38px;padding:0 24px;background:#f39c12;border-color:#f39c12;color:#fff">
+        <span class="mdi mdi-sitemap"></span> 生成Sitemap
+      </button>
+      <button class="btn" onclick="clearLog()" style="height:38px;padding:0 16px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;margin-left:auto">
+        <span class="mdi mdi-delete-sweep"></span> 清空日志
+      </button>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="gen-progress" id="progressArea" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;color:#555"><span class="mdi mdi-sync"></span> 正在生成...</span>
+        <span style="font-size:13px;color:#888"><span id="currentNum">0</span> / <span id="totalNum">0</span></span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+      <div style="text-align:center;margin-top:4px">
+        <span style="font-size:12px;color:#aaa" id="currentTitle"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 生成日志 -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-text-box"></span> 生成日志</span>
+    <span style="font-size:12px;color:#aaa" id="logCount">共 0 条</span>
+  </div>
+  <div class="section-body" style="padding:0">
+    <div class="gen-log" id="logContainer">
+      <div style="color:#888">就绪，等待生成...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 选中生成的栏目选择弹窗 -->
+<div class="modal fade" id="categorySelectModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><span class="mdi mdi-checkbox-multiple-marked"></span> 选择生成范围</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body" id="categoryCheckList">
+        <div style="text-align:center;color:#aaa;padding:20px">加载栏目列表...</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="doGenerateSelected()"><span class="mdi mdi-play"></span> 开始生成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var logs = [];
+
+function addLog(msg, type){
+  var now = new Date();
+  var time = now.toTimeString().substring(0,8);
+  type = type || 'info';
+  logs.push({time: time, msg: msg, type: type});
+  renderLogs();
+}
+
+function renderLogs(){
+  var html = '';
+  for(var i = 0; i < logs.length; i++){
+    var log = logs[i];
+    html += '<div><span class="log-time">['+log.time+']</span><span class="log-'+log.type+'">'+log.msg+'</span></div>';
+  }
+  if(logs.length === 0){
+    html = '<div style="color:#888">就绪，等待生成...</div>';
+  }
+  $('#logContainer').html(html);
+  $('#logContainer').scrollTop($('#logContainer')[0].scrollHeight);
+  $('#logCount').text('共 ' + logs.length + ' 条');
+}
+
+function clearLog(){
+  logs = [];
+  renderLogs();
+  $('#statTotal').text('-');
+  $('#statSuccess').text('-');
+  $('#statFail').text('-');
+  $('#statSitemap').text('-');
+  $('#progressArea').hide();
+}
+
+function updateProgress(current, total, title){
+  $('#progressArea').show();
+  $('#currentNum').text(current);
+  $('#totalNum').text(total);
+  $('#currentTitle').text(title || '');
+  var pct = total > 0 ? Math.round(current / total * 100) : 0;
+  $('#progressBar').css('width', pct + '%').text(pct + '%');
+}
+
+// ===== 全量生成 =====
+function generateAll(){
+  layer.confirm('确定要全量生成所有静态页面吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    clearLog();
+    addLog('开始全量生成...', 'info');
+    $.ajax({
+      url: '/cms/generate/all',
+      type: 'POST',
+      data: {domain: $('#domain').val()},
+      success: function(res){
+        if(res.code === 0){
+          addLog('全量生成任务已提交，共 ' + (res.data || 0) + ' 篇文章', 'success');
+          pollStatus();
+        }else{
+          addLog('全量生成启动失败: ' + (res.msg || '未知错误'), 'error');
+        }
+      },
+      error: function(){
+        addLog('请求失败，请检查服务是否正常', 'error');
+      }
+    });
+  });
+}
+
+// ===== 选中生成 =====
+function generateSelected(){
+  // 加载栏目列表并展示
+  $.get('/cms/category/tree', function(res){
+    if(res.code === 0){
+      var list = res.data || [];
+      var html = '';
+      function buildCheckboxes(items, indent){
+        indent = indent || 0;
+        for(var i = 0; i < items.length; i++){
+          var cat = items[i];
+          html += '<div class="form-check" style="margin-left:'+(indent*20)+'px;margin-bottom:4px">';
+          html += '<input class="form-check-input" type="checkbox" value="'+cat.categoryId+'" id="cat_'+cat.categoryId+'">';
+          html += '<label class="form-check-label" for="cat_'+cat.categoryId+'" style="font-size:13px">'+cat.categoryName+'</label>';
+          html += '</div>';
+          if(cat.children && cat.children.length > 0){
+            html += buildCheckboxes(cat.children, indent+1);
+          }
+        }
+        return html;
+      }
+      html = buildCheckboxes(list);
+      if(!html) html = '<div style="color:#aaa;text-align:center">暂无栏目</div>';
+      $('#categoryCheckList').html(html);
+      $('#categorySelectModal').modal('show');
+    }
+  });
+}
+
+function doGenerateSelected(){
+  var checkedIds = [];
+  $('#categoryCheckList input:checked').each(function(){
+    checkedIds.push($(this).val());
+  });
+  if(checkedIds.length === 0){
+    layer.msg('请选择至少一个栏目', {icon:2});
+    return;
+  }
+  $('#categorySelectModal').modal('hide');
+  clearLog();
+  addLog('开始选中生成，栏目数: ' + checkedIds.length, 'info');
+  $.ajax({
+    url: '/cms/generate/selected',
+    type: 'POST',
+    data: {categoryIds: checkedIds.join(','), domain: $('#domain').val()},
+    success: function(res){
+      if(res.code === 0){
+        addLog('选中生成任务已提交', 'success');
+        pollStatus();
+      }else{
+        addLog('选中生成启动失败: ' + (res.msg || '未知错误'), 'error');
+      }
+    },
+    error: function(){
+      addLog('请求失败，请检查服务是否正常', 'error');
+    }
+  });
+}
+
+// ===== 生成 Sitemap =====
+function generateSitemap(){
+  layer.confirm('确定要生成 sitemap.xml 吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    addLog('开始生成 sitemap.xml...', 'info');
+    $.ajax({
+      url: '/cms/generate/sitemap',
+      type: 'POST',
+      data: {domain: $('#domain').val()},
+      success: function(res){
+        if(res.code === 0){
+          addLog('sitemap.xml 生成成功', 'success');
+          $('#statSitemap').text('已生成');
+          layer.msg('sitemap.xml 生成成功', {icon:1});
+        }else{
+          addLog('sitemap.xml 生成失败: ' + (res.msg || '未知错误'), 'error');
+        }
+      },
+      error: function(){
+        addLog('请求失败，请检查服务是否正常', 'error');
+      }
+    });
+  });
+}
+
+// ===== 轮询状态 =====
+var pollTimer = null;
+function pollStatus(){
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(function(){
+    $.get('/cms/generate/status', function(res){
+      if(res.code === 0){
+        var data = res.data;
+        $('#statTotal').text(data.total || 0);
+        $('#statSuccess').text(data.success || 0);
+        $('#statFail').text(data.fail || 0);
+        updateProgress(data.current || 0, data.total || 0, data.currentTitle || '');
+        if(data.recentLogs && data.recentLogs.length > 0){
+          for(var i = 0; i < data.recentLogs.length; i++){
+            addLog(data.recentLogs[i].msg, data.recentLogs[i].type);
+          }
+        }
+        if(data.finished){
+          clearInterval(pollTimer);
+          pollTimer = null;
+          addLog('生成完成！成功: ' + (data.success||0) + ', 失败: ' + (data.fail||0), 'info');
+          layer.msg('生成完成', {icon:1});
+          $('#progressArea').hide();
+        }
+      }
+    });
+  }, 1500);
+}
+
+// 页面加载时获取初始状态
+$(function(){
+  $.get('/cms/generate/status', function(res){
+    if(res.code === 0 && res.data){
+      $('#statTotal').text(res.data.total || '-');
+      $('#statSuccess').text(res.data.success || '-');
+      $('#statFail').text(res.data.fail || '-');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

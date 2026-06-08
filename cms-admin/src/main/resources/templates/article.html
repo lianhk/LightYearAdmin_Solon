@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.table{margin:0}.table th{font-size:13px;color:#555;border-top:none;background:#fafafa}.table td{font-size:13px;vertical-align:middle}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}.badge-warning{background:#f39c12;color:#fff}.badge-info{background:#17a2b8;color:#fff}.badge-secondary{background:#aaa;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.search-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.search-form .form-group{margin-bottom:0}
+.search-form label{font-size:13px;color:#666;margin-bottom:4px;display:block}
+textarea.form-control{min-height:80px;resize:vertical}
+.article-title{color:#333;text-decoration:none}.article-title:hover{color:#4facfe}
+#editor-toolbar{background:#fff;border:1px solid #ddd;border-bottom:none;border-radius:4px 4px 0 0}
+#editor-text{min-height:350px}
+.modal-xxl{max-width:1100px}
+.btn-light-blue{background:#eef5ff;border-color:#b8daff;color:#4facfe}
+.btn-light-green{background:#e9f7ef;border-color:#a3e4bc;color:#27ae60}
+.btn-light-orange{background:#fef9e7;border-color:#f9e79f;color:#f39c12}
+</style>
+</head>
+<body>
+
+<!-- 搜索区 -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-magnify"></span> 搜索条件</span>
+  </div>
+  <div class="section-body">
+    <form class="search-form" method="get" action="/cms/article">
+      <div class="form-group">
+        <label>标题</label>
+        <input type="text" class="form-control" name="title" placeholder="输入文章标题" value="${title!''}" style="width:180px">
+      </div>
+      <div class="form-group">
+        <label>栏目</label>
+        <select class="form-control" name="categoryId" style="width:160px">
+          <option value="">全部栏目</option>
+          <% if(categoryTree != null && categoryTree.~size > 0) { %>
+            <% for(var cat in categoryTree) { %>
+            <option value="${cat.categoryId}" ${categoryId!'' == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
+              <% if(cat.children != null && cat.children.~size > 0) { %>
+                <% for(var sub in cat.children) { %>
+                <option value="${sub.categoryId}" ${categoryId!'' == sub.categoryId ? 'selected' : ''}>&nbsp;&nbsp;|- ${sub.categoryName}</option>
+                <% } %>
+              <% } %>
+            <% } %>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>状态</label>
+        <select class="form-control" name="status" style="width:130px">
+          <option value="">全部</option>
+          <option value="draft" ${status!''=='draft'?'selected':''}>草稿</option>
+          <option value="published" ${status!''=='published'?'selected':''}>已发布</option>
+          <option value="reviewing" ${status!''=='reviewing'?'selected':''}>审核中</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>时间范围</label>
+        <input type="date" class="form-control" name="startTime" value="${startTime!''}" style="width:140px">
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <input type="date" class="form-control" name="endTime" value="${endTime!''}" style="width:140px">
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn btn-primary" style="height:38px;padding:0 20px"><span class="mdi mdi-magnify"></span> 搜索</button>
+        <button type="reset" class="btn btn-default" style="height:38px;padding:0 16px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;margin-left:6px"><span class="mdi mdi-refresh"></span> 重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 列表区 -->
+<div class="section">
+  <div class="section-header">
+    <span style="font-size:14px;font-weight:500;color:#333"><span class="mdi mdi-file-document"></span> 文章列表</span>
+    <button class="btn btn-primary btn-sm" onclick="openAdd()"><span class="mdi mdi-plus"></span> 新增</button>
+  </div>
+  <div class="section-body" style="padding:0">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:50px">#</th>
+          <th style="min-width:200px">标题</th>
+          <th style="width:120px">栏目</th>
+          <th style="width:80px">作者</th>
+          <th style="width:80px">状态</th>
+          <th style="width:150px">发布时间</th>
+          <th style="width:240px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(list != null && list.~size > 0) { %>
+          <% for(var item in list) { %>
+          <tr>
+            <td>${itemLP.index}</td>
+            <td>
+              <a href="javascript:void(0)" class="article-title" onclick="openEdit('${item.articleId}')">${item.title}</a>
+              <% if(item.isTop == '1') { %><span class="badge badge-danger" style="font-size:10px;margin-left:4px">置顶</span><% } %>
+              <% if(item.isRecommend == '1') { %><span class="badge badge-success" style="font-size:10px;margin-left:2px">推荐</span><% } %>
+            </td>
+            <td>${item.categoryName!'-'}</td>
+            <td>${item.author!'-'}</td>
+            <td>
+              <% if(item.status == 'published') { %>
+                <span class="badge badge-success">已发布</span>
+              <% } else if(item.status == 'draft') { %>
+                <span class="badge badge-secondary">草稿</span>
+              <% } else if(item.status == 'reviewing') { %>
+                <span class="badge badge-warning">审核中</span>
+              <% } %>
+            </td>
+            <td>${item.publishTime!item.createTime!''}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openEdit('${item.articleId}')" title="编辑"><span class="mdi mdi-pencil"></span></button>
+              <% if(item.status == 'draft') { %>
+              <button class="btn btn-light-green btn-sm" onclick="changeStatus('${item.articleId}','reviewing')" title="送审"><span class="mdi mdi-send-check"></span></button>
+              <% } else if(item.status == 'reviewing') { %>
+              <button class="btn btn-light-blue btn-sm" onclick="changeStatus('${item.articleId}','published')" title="发布"><span class="mdi mdi-check-circle"></span></button>
+              <% } %>
+              <% if(item.status == 'published') { %>
+              <button class="btn btn-light-green btn-sm" onclick="generateStatic('${item.articleId}')" title="生成静态页"><span class="mdi mdi-file-eye"></span></button>
+              <% } %>
+              <button class="btn btn-danger btn-sm" onclick="doDelete('${item.articleId}')" style="background:#fa709a;border-color:#fa709a;color:#fff" title="删除"><span class="mdi mdi-delete"></span></button>
+            </td>
+          </tr>
+          <% } %>
+        <% } else { %>
+          <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">暂无数据</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid #f0f0f0;font-size:13px;color:#888">
+      <span>共 <b>${total!0}</b> 条记录</span>
+      <div style="display:flex;gap:4px">
+        <% if(pageNum > 1) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="goPage(1)">首页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="goPage(${pageNum-1})">上一页</button>
+        <% } %>
+        <span style="line-height:30px;margin:0 8px">第 <b>${pageNum!1}</b> / <b>${totalPages!1}</b> 页</span>
+        <% if(pageNum < totalPages) { %>
+          <button class="btn btn-sm btn-outline-secondary" onclick="goPage(${pageNum+1})">下一页</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="goPage(${totalPages})">末页</button>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-xxl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">新增文章</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+        <input type="hidden" id="editArticleId">
+        <div class="row">
+          <div class="col-md-8">
+            <div class="form-group">
+              <label>标题 <span style="color:red">*</span></label>
+              <input type="text" class="form-control" id="title" placeholder="请输入文章标题">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>所属栏目</label>
+              <select class="form-control" id="categoryId">
+                <option value="">请选择栏目</option>
+                <% if(categoryTree != null && categoryTree.~size > 0) { %>
+                  <% for(var cat in categoryTree) { %>
+                  <option value="${cat.categoryId}">${cat.categoryName}</option>
+                    <% if(cat.children != null && cat.children.~size > 0) { %>
+                      <% for(var sub in cat.children) { %>
+                      <option value="${sub.categoryId}">&nbsp;&nbsp;|- ${sub.categoryName}</option>
+                      <% } %>
+                    <% } %>
+                  <% } %>
+                <% } %>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-8">
+            <div class="form-group">
+              <label>摘要</label>
+              <textarea class="form-control" id="summary" rows="2" placeholder="请输入文章摘要"></textarea>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>封面图</label>
+              <input type="text" class="form-control" id="coverImage" placeholder="封面图片URL">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>内容</label>
+          <div id="editor-toolbar"></div>
+          <div id="editor-text"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>作者</label>
+              <input type="text" class="form-control" id="author" placeholder="作者">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>来源</label>
+              <input type="text" class="form-control" id="source" placeholder="文章来源">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>来源URL</label>
+              <input type="text" class="form-control" id="sourceUrl" placeholder="来源链接">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>SEO标题</label>
+              <input type="text" class="form-control" id="seoTitle" placeholder="SEO标题">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>SEO关键词</label>
+              <input type="text" class="form-control" id="seoKeywords" placeholder="SEO关键词">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>SEO描述</label>
+              <textarea class="form-control" id="seoDescription" rows="2" placeholder="SEO描述"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>标签</label>
+              <input type="text" class="form-control" id="tags" placeholder="多个标签用逗号分隔">
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>状态</label>
+              <select class="form-control" id="status">
+                <option value="draft">草稿</option>
+                <option value="reviewing">审核中</option>
+                <option value="published">已发布</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>置顶</label>
+              <select class="form-control" id="isTop">
+                <option value="0">否</option>
+                <option value="1">是</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>推荐</label>
+              <select class="form-control" id="isRecommend">
+                <option value="0">否</option>
+                <option value="1">是</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script src="/static/lib/wangeditor/wangEditor.min.js"></script>
+<script>
+var isEdit = false;
+var editor = null;
+
+// 初始化 wangEditor
+function initEditor(){
+  if(editor){
+    editor.destroy();
+  }
+  var E = window.wangEditor;
+  editor = new E('#editor-toolbar', '#editor-text');
+  editor.customConfig.uploadImgServer = '/cms/upload/editor';
+  editor.customConfig.uploadFileName = 'file';
+  editor.customConfig.menus = [
+    'head', 'bold', 'italic', 'underline', 'strikeThrough',
+    'foreColor', 'backColor', 'link', 'list', 'justify',
+    'quote', 'table', 'image', 'video', 'code'
+  ];
+  editor.create();
+}
+
+$('#formModal').on('shown.bs.modal', function(){
+  initEditor();
+});
+
+// ===== 分页 =====
+function goPage(p){
+  var url = '?pageNum=' + p + '&pageSize=${pageSize!10}';
+  <% if(title != null && title != '') { %> url += '&title=${title}'; <% } %>
+  <% if(categoryId != null && categoryId != '') { %> url += '&categoryId=${categoryId}'; <% } %>
+  <% if(status != null && status != '') { %> url += '&status=${status}'; <% } %>
+  <% if(startTime != null && startTime != '') { %> url += '&startTime=${startTime}'; <% } %>
+  <% if(endTime != null && endTime != '') { %> url += '&endTime=${endTime}'; <% } %>
+  window.location.href = url;
+}
+
+// ===== CRUD =====
+function openAdd(){
+  isEdit = false;
+  $('#modalTitle').text('新增文章');
+  $('#editArticleId').val('');
+  $('#title').val('');
+  $('#categoryId').val('');
+  $('#summary').val('');
+  $('#coverImage').val('');
+  $('#author').val('');
+  $('#source').val('');
+  $('#sourceUrl').val('');
+  $('#seoTitle').val('');
+  $('#seoKeywords').val('');
+  $('#seoDescription').val('');
+  $('#tags').val('');
+  $('#status').val('draft');
+  $('#isTop').val('0');
+  $('#isRecommend').val('0');
+  $('#formModal').modal('show');
+}
+
+function openEdit(articleId){
+  isEdit = true;
+  $('#modalTitle').text('编辑文章');
+  $.get('/cms/article/detail?id=' + articleId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#editArticleId').val(data.articleId);
+      $('#title').val(data.title || '');
+      $('#categoryId').val(data.categoryId || '');
+      $('#summary').val(data.summary || '');
+      $('#coverImage').val(data.coverImage || '');
+      $('#author').val(data.author || '');
+      $('#source').val(data.source || '');
+      $('#sourceUrl').val(data.sourceUrl || '');
+      $('#seoTitle').val(data.seoTitle || '');
+      $('#seoKeywords').val(data.seoKeywords || '');
+      $('#seoDescription').val(data.seoDescription || '');
+      $('#tags').val(data.tags || '');
+      $('#status').val(data.status || 'draft');
+      $('#isTop').val(data.isTop || '0');
+      $('#isRecommend').val(data.isRecommend || '0');
+      $('#formModal').modal('show');
+      // 异步设置编辑器内容
+      setTimeout(function(){
+        if(editor && data.content){
+          editor.txt.html(data.content);
+        }
+      }, 200);
+    }
+  });
+}
+
+function submitForm(){
+  var url = isEdit ? '/cms/article/edit' : '/cms/article/add';
+  var data = {
+    articleId: $('#editArticleId').val(),
+    title: $('#title').val(),
+    categoryId: $('#categoryId').val(),
+    summary: $('#summary').val(),
+    coverImage: $('#coverImage').val(),
+    content: editor ? editor.txt.html() : '',
+    author: $('#author').val(),
+    source: $('#source').val(),
+    sourceUrl: $('#sourceUrl').val(),
+    seoTitle: $('#seoTitle').val(),
+    seoKeywords: $('#seoKeywords').val(),
+    seoDescription: $('#seoDescription').val(),
+    tags: $('#tags').val(),
+    status: $('#status').val(),
+    isTop: $('#isTop').val(),
+    isRecommend: $('#isRecommend').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      $('#formModal').modal('hide');
+      if(editor) editor.destroy();
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+
+function changeStatus(articleId, status){
+  var statusNames = {draft:'草稿', reviewing:'送审', published:'发布'};
+  var actionName = statusNames[status] || status;
+  layer.confirm('确定要' + actionName + '该文章吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/cms/article/changeStatus', {articleId: articleId, status: status}, function(res){
+      if(res.code === 0){
+        layer.msg(res.msg || '操作成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '操作失败', {icon:2});
+      }
+    });
+  });
+}
+
+function generateStatic(articleId){
+  layer.load(1);
+  $.post('/cms/generate/article', {articleId: articleId}, function(res){
+    layer.closeAll('loading');
+    if(res.code === 0){
+      layer.msg('静态页生成成功', {icon:1});
+    }else{
+      layer.msg(res.msg || '生成失败', {icon:2});
+    }
+  });
+}
+
+function doDelete(articleId){
+  layer.confirm('确定要删除该文章吗？', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/cms/article/delete', {articleId: articleId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>

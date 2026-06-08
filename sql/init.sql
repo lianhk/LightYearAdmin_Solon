@@ -434,3 +434,98 @@ INSERT INTO sys_config VALUES (6, 'CMS静态文件输出目录',           'cms.
 INSERT INTO sys_notice VALUES (1, '关于升级系统框架的通知',                                 '2', 0xE59084E983A8E997A8EFBC9A0AE7B3BBE7BB9FE5B7B2E58886E58D87E887B3536F6C6F6E20332E31302E3720E280A020426565746C53514CE5AE9EE78EB0EFBC8CE8AFB7E5A4A7E5AEB6E6B3A8E6848FE696B0E58A9FE883BDE58F98E58C96E38082, '0', 'admin', '2024-01-01 00:00:00', '', '管理员');
 INSERT INTO sys_notice VALUES (2, 'CMS企业网站管理系统正式上线',                              '1', 0x434D53E4BC81E4B89AE7BD91E7AB99E7AEA1E79086E7B3BBE7BB9FE6ADA3E5BC8FE4B88AE7BABFEFBC8CE694AFE68C81E6A8A1E69DBFE7AEA1E79086E38081E99D99E6808148544D4CE7949FE68890E7AD89E58A9FE883BDE38082, '0', 'admin', '2024-01-01 00:00:00', '', '管理员');
 INSERT INTO sys_notice VALUES (3, '关于2024年春节放假安排的通知',                            '1', 0x32303234E5B9B4E698A5E88A82E694BEE58187E5AE89E68E92EFBC9A32E69C8839E697A5E887B33137E697A5E38082, '0', 'admin', '2024-01-01 00:00:00', '', '管理员');
+
+-- ==================== CMS模块 ====================
+
+-- 栏目表
+DROP TABLE IF EXISTS cms_category;
+CREATE TABLE cms_category (
+  category_id bigint(20) NOT NULL AUTO_INCREMENT,
+  parent_id bigint(20) DEFAULT 0 COMMENT '父栏目ID',
+  category_name varchar(50) NOT NULL COMMENT '栏目名称',
+  category_code varchar(64) DEFAULT '' COMMENT '栏目编码(URL路径)',
+  template_id bigint(20) DEFAULT NULL COMMENT '列表模板ID',
+  article_template_id bigint(20) DEFAULT NULL COMMENT '文章模板ID',
+  seo_title varchar(200) DEFAULT '' COMMENT 'SEO标题',
+  seo_keywords varchar(500) DEFAULT '' COMMENT 'SEO关键词',
+  seo_description varchar(1000) DEFAULT '' COMMENT 'SEO描述',
+  url_path varchar(200) DEFAULT '' COMMENT '访问路径',
+  image varchar(500) DEFAULT '' COMMENT '栏目图片',
+  target_blank char(1) DEFAULT '0' COMMENT '是否新窗口打开',
+  sort_num int(4) DEFAULT 0 COMMENT '排序',
+  status char(1) DEFAULT '0' COMMENT '状态(0正常 1停用)',
+  create_by varchar(64) DEFAULT '' COMMENT '创建者',
+  create_time datetime DEFAULT NULL,
+  update_by varchar(64) DEFAULT '',
+  update_time datetime DEFAULT NULL,
+  PRIMARY KEY (category_id)
+) ENGINE=InnoDB AUTO_INCREMENT=200 DEFAULT CHARSET=utf8mb4 COMMENT='CMS栏目表';
+
+-- 文章表
+DROP TABLE IF EXISTS cms_article;
+CREATE TABLE cms_article (
+  article_id bigint(20) NOT NULL AUTO_INCREMENT,
+  category_id bigint(20) NOT NULL COMMENT '栏目ID',
+  title varchar(200) NOT NULL COMMENT '标题',
+  summary varchar(500) DEFAULT '' COMMENT '摘要',
+  content longtext COMMENT '内容',
+  cover_image varchar(500) DEFAULT '' COMMENT '封面图',
+  author varchar(50) DEFAULT '' COMMENT '作者',
+  source varchar(100) DEFAULT '' COMMENT '来源',
+  source_url varchar(500) DEFAULT '' COMMENT '来源URL',
+  seo_title varchar(200) DEFAULT '' COMMENT 'SEO标题',
+  seo_keywords varchar(500) DEFAULT '' COMMENT 'SEO关键词',
+  seo_description varchar(1000) DEFAULT '' COMMENT 'SEO描述',
+  tags varchar(200) DEFAULT '' COMMENT '标签(逗号分隔)',
+  status char(1) DEFAULT '0' COMMENT '状态(0草稿 1已发布 2审核中)',
+  is_top char(1) DEFAULT '0' COMMENT '置顶(0否 1是)',
+  is_recommend char(1) DEFAULT '0' COMMENT '推荐(0否 1是)',
+  view_count int(11) DEFAULT 0 COMMENT '浏览次数',
+  publish_time datetime DEFAULT NULL COMMENT '发布时间',
+  static_path varchar(500) DEFAULT '' COMMENT '静态文件路径',
+  create_by varchar(64) DEFAULT '',
+  create_time datetime DEFAULT NULL,
+  update_by varchar(64) DEFAULT '',
+  update_time datetime DEFAULT NULL,
+  PRIMARY KEY (article_id),
+  KEY idx_category_id (category_id),
+  KEY idx_status (status),
+  KEY idx_publish_time (publish_time)
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COMMENT='CMS文章表';
+
+-- 模板表
+DROP TABLE IF EXISTS cms_template;
+CREATE TABLE cms_template (
+  template_id bigint(20) NOT NULL AUTO_INCREMENT,
+  template_name varchar(100) NOT NULL COMMENT '模板名称',
+  template_code varchar(64) NOT NULL COMMENT '模板编码',
+  template_type char(1) DEFAULT '0' COMMENT '类型(0列表 1文章 2通用)',
+  file_path varchar(200) DEFAULT '' COMMENT '文件路径',
+  content longtext COMMENT '模板内容',
+  description varchar(500) DEFAULT '' COMMENT '描述',
+  status char(1) DEFAULT '0' COMMENT '状态',
+  create_by varchar(64) DEFAULT '',
+  create_time datetime DEFAULT NULL,
+  update_by varchar(64) DEFAULT '',
+  update_time datetime DEFAULT NULL,
+  PRIMARY KEY (template_id)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COMMENT='CMS模板表';
+
+-- 演示数据
+INSERT INTO cms_category VALUES (1, 0, '关于我们', 'about', NULL, NULL, '关于我们-XX科技', '关于,公司', 'XX科技有限公司介绍', '/about', '', '0', 1, '0', 'admin', NOW(), '', NULL);
+INSERT INTO cms_category VALUES (2, 0, '新闻动态', 'news', NULL, NULL, '新闻动态-XX科技', '新闻,动态', '最新企业新闻动态', '/news', '', '0', 2, '0', 'admin', NOW(), '', NULL);
+INSERT INTO cms_category VALUES (3, 2, '公司新闻', 'company-news', NULL, NULL, '公司新闻', '公司,新闻', '', '/news/company', '', '0', 1, '0', 'admin', NOW(), '', NULL);
+INSERT INTO cms_category VALUES (4, 2, '行业资讯', 'industry', NULL, NULL, '行业资讯', '行业,资讯', '', '/news/industry', '', '0', 2, '0', 'admin', NOW(), '', NULL);
+INSERT INTO cms_category VALUES (5, 0, '产品展示', 'products', NULL, NULL, '产品展示', '产品', '', '/products', '', '0', 3, '0', 'admin', NOW(), '', NULL);
+
+INSERT INTO cms_article VALUES (1, 3, 'XX科技荣获2024年度技术创新奖', 'XX科技凭借在AI领域的持续创新...', '<h2>技术创新奖</h2><p>近日，XX科技在2024年度...</p>', '', '管理员', '企业新闻部', '', '技术创新奖-XX科技', '创新,技术,奖项', 'XX科技获技术创新奖', '创新,奖项', '1', '1', '1', 256, NOW(), '', 'admin', NOW(), '', NULL);
+INSERT INTO cms_article VALUES (2, 3, '公司乔迁新址 开启发展新篇章', '为适应业务发展需要...', '<h2>乔迁公告</h2><p>XX科技于2024年1月正式乔迁...</p>', '', '管理员', '', '', '乔迁新址-XX科技', '乔迁,新址', '', '乔迁', '1', '0', '1', 128, NOW(), '', 'admin', NOW(), '', NULL);
+INSERT INTO cms_article VALUES (3, 1, '关于XX科技', 'XX科技有限公司成立于2010年，是一家专注于...', '<h2>公司简介</h2><p>XX科技有限公司成立于2010年，注册资本...</p>', '', '管理员', '', '', '关于我们', '', 'XX科技公司简介', '关于', '1', '0', '0', 89, NOW(), '', 'admin', NOW(), '', NULL);
+
+INSERT INTO cms_template VALUES (1, '默认列表模板', 'default-list', '0', 'cms/list.html', '<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><title>${seoTitle!"CMS"}</title></head>\n<body>\n<h1>${categoryName!"栏目列表"}</h1>\n<ul>\n<% for(var article in articles){ %>\n<li><a href="${article.staticPath!""}">${article.title}</a> - ${article.publishTime!""}</li>\n<% } %>\n</ul>\n</body>\n</html>', '默认文章列表模板', '0', 'admin', NOW(), '', NULL);
+INSERT INTO cms_template VALUES (2, '默认文章模板', 'default-article', '1', 'cms/article.html', '<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><meta name="keywords" content="${seoKeywords!""}"><meta name="description" content="${seoDescription!""}"><title>${seoTitle!article.title}</title></head>\n<body>\n<article>\n<h1>${article.title}</h1>\n<div>发布时间: ${article.publishTime!""} 作者: ${article.author!""}</div>\n<div>${article.content!""}</div>\n</article>\n</body>\n</html>', '默认文章详情模板', '0', 'admin', NOW(), '', NULL);
+
+-- 更新菜单表，让CMS菜单路径指向正确的Controller
+UPDATE sys_menu SET path = '/cms/category' WHERE menu_id = 110;
+UPDATE sys_menu SET path = '/cms/article' WHERE menu_id = 111;
+UPDATE sys_menu SET path = '/cms/template' WHERE menu_id = 112;

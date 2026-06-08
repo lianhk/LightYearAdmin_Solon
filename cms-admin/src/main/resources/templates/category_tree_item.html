@@ -1,0 +1,26 @@
+<%
+var cat = catNode;
+%>
+<li>
+  <div class="tree-node" data-id="${cat.categoryId}" data-code="${cat.categoryCode!''}">
+    <% if(cat.children != null && cat.children.~size > 0) { %>
+      <span class="toggle-icon mdi mdi-chevron-down"></span>
+    <% } else { %>
+      <span class="toggle-icon empty mdi mdi-chevron-right"></span>
+    <% } %>
+    <span class="node-icon mdi ${cat.children != null && cat.children.~size > 0 ? 'mdi-folder folder' : 'mdi-file-document file'}"></span>
+    <span class="node-name">${cat.categoryName}</span>
+    <% if(cat.status == '1') { %><span class="node-badge badge badge-danger" style="font-size:10px">停用</span><% } %>
+    <span class="node-badge" style="color:#bbb;font-size:10px;margin-left:4px">${cat.categoryCode!''}</span>
+  </div>
+  <% if(cat.children != null && cat.children.~size > 0) { %>
+    <ul class="children" style="display:block">
+      <% for(var child in cat.children) { %>
+        <%
+        catNode = child;
+        include("/templates/category_tree_item.html"){};
+        %>
+      <% } %>
+    </ul>
+  <% } %>
+</li>

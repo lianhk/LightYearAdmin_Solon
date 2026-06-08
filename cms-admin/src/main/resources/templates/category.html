@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>栏目管理</title>
+<link href="/static/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="/static/lib/mdi/css/materialdesignicons.min.css" rel="stylesheet">
+<link href="/static/lib/layer/theme/default/layer.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f7fa;font-family:"Microsoft YaHei",sans-serif;padding:15px}
+.section{background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:15px}
+.section-header{padding:12px 18px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.section-body{padding:15px}
+.btn{border-radius:4px;font-size:13px}.btn-primary{background:#4facfe;border-color:#4facfe;color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.badge{font-size:12px;padding:4px 10px;border-radius:12px}.badge-success{background:#43e97b;color:#333}.badge-danger{background:#fa709a;color:#fff}
+.form-control{height:38px;border-radius:4px;font-size:13px}
+.cat-layout{display:flex;gap:15px}
+.cat-tree-panel{width:300px;flex-shrink:0;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden}
+.cat-tree-panel .tree-header{padding:10px 15px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;background:#fafafa}
+.cat-detail-panel{flex:1;min-width:0}
+.cat-tree{list-style:none;padding:8px 0;margin:0;max-height:620px;overflow-y:auto}
+.cat-tree ul{list-style:none;padding:0;margin:0}
+.cat-tree li{position:relative}
+.cat-tree .tree-node{display:flex;align-items:center;padding:7px 12px;cursor:pointer;font-size:13px;color:#555;transition:background 0.15s}
+.cat-tree .tree-node:hover{background:#f8fafc}
+.cat-tree .tree-node.active{background:#eef5ff;color:#4facfe}
+.cat-tree .toggle-icon{width:18px;height:18px;line-height:18px;text-align:center;font-size:12px;color:#999;cursor:pointer;flex-shrink:0;margin-right:2px;user-select:none}
+.cat-tree .toggle-icon.empty{visibility:hidden}
+.cat-tree .node-icon{font-size:16px;margin-right:6px;color:#4facfe}
+.cat-tree .node-icon.folder{color:#f0ad4e}
+.cat-tree .node-icon.file{color:#4facfe}
+.cat-tree .node-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-tree .node-badge{font-size:11px;margin-left:6px}
+.cat-tree .children{padding-left:18px}
+.detail-placeholder{text-align:center;color:#aaa;padding:80px 0;font-size:14px}
+.detail-placeholder .mdi{font-size:48px;display:block;margin-bottom:12px;color:#ddd}
+textarea.form-control{min-height:80px;resize:vertical}
+label{font-size:13px;color:#666;margin-bottom:4px}
+.text-muted{font-size:12px;color:#aaa}
+.form-actions{text-align:center;padding:15px 0 0;border-top:1px solid #f0f0f0;margin-top:15px}
+</style>
+</head>
+<body>
+
+<div class="cat-layout">
+  <!-- 左侧栏目树 -->
+  <div class="cat-tree-panel">
+    <div class="tree-header">
+      <span style="font-size:13px;font-weight:500;color:#333"><span class="mdi mdi-file-tree"></span> 栏目树</span>
+      <div>
+        <button class="btn btn-default btn-sm" onclick="expandAll()" style="padding:2px 8px;font-size:11px;border:1px solid #ddd;background:#fff;color:#888;border-radius:3px" title="全部展开"><span class="mdi mdi-arrow-expand-all"></span></button>
+        <button class="btn btn-default btn-sm" onclick="collapseAll()" style="padding:2px 8px;font-size:11px;border:1px solid #ddd;background:#fff;color:#888;border-radius:3px;margin-left:2px" title="全部折叠"><span class="mdi mdi-arrow-collapse-all"></span></button>
+        <button class="btn btn-primary btn-sm" onclick="openAdd(0)" style="padding:2px 8px;font-size:11px;margin-left:4px" title="新增根栏目"><span class="mdi mdi-plus"></span></button>
+      </div>
+    </div>
+    <ul class="cat-tree" id="catTree">
+      <% if(list != null && list.~size > 0) { %>
+        <% for(var item in list) { %>
+          <%
+          var catNode = item;
+          %>
+          <% include("/templates/category_tree_item.html"){} %>
+        <% } %>
+      <% } else { %>
+        <li style="text-align:center;color:#aaa;padding:30px">暂无栏目数据</li>
+      <% } %>
+    </ul>
+  </div>
+
+  <!-- 右侧栏目详情/编辑区 -->
+  <div class="cat-detail-panel">
+    <div class="section" style="margin-bottom:0;min-height:400px">
+      <div class="section-header">
+        <span style="font-size:14px;font-weight:500;color:#333" id="detailTitle"><span class="mdi mdi-information-outline"></span> 栏目详情</span>
+        <span id="detailActions"></span>
+      </div>
+      <div class="section-body">
+        <div id="detailPlaceholder" class="detail-placeholder">
+          <span class="mdi mdi-arrow-left-bold-circle"></span>
+          请选择左侧栏目查看详情
+        </div>
+        <div id="detailForm" style="display:none">
+          <input type="hidden" id="editCategoryId">
+          <input type="hidden" id="editParentId">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>栏目名称 <span style="color:red">*</span></label>
+                <input type="text" class="form-control" id="categoryName" placeholder="请输入栏目名称">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>栏目编码 <span style="color:red">*</span></label>
+                <input type="text" class="form-control" id="categoryCode" placeholder="请输入唯一编码">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>父栏目</label>
+                <input type="text" class="form-control" id="parentName" readonly placeholder="根栏目">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>访问路径</label>
+                <input type="text" class="form-control" id="path" placeholder="如 /news/tech">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>列表模板</label>
+                <input type="text" class="form-control" id="listTpl" placeholder="栏目列表页模板路径">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>文章模板</label>
+                <input type="text" class="form-control" id="articleTpl" placeholder="文章详情页模板路径">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>SEO标题</label>
+                <input type="text" class="form-control" id="seoTitle" placeholder="SEO标题">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>SEO关键词</label>
+                <input type="text" class="form-control" id="seoKeywords" placeholder="SEO关键词">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>SEO描述</label>
+                <textarea class="form-control" id="seoDescription" rows="2" placeholder="SEO描述"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>栏目图片</label>
+                <input type="text" class="form-control" id="imageUrl" placeholder="图片URL">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label>排序</label>
+                <input type="number" class="form-control" id="orderNum" value="0">
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label>新窗口打开</label>
+                <select class="form-control" id="isBlank">
+                  <option value="0">否</option>
+                  <option value="1">是</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>状态</label>
+                <select class="form-control" id="status">
+                  <option value="0">启用</option>
+                  <option value="1">禁用</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" onclick="submitForm()"><span class="mdi mdi-content-save"></span> 保存</button>
+            <button type="button" class="btn btn-default" onclick="resetForm()" style="border:1px solid #ddd;border-radius:4px;background:#fff;color:#888;margin-left:8px"><span class="mdi mdi-refresh"></span> 重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/lib/jquery/jquery.min.js"></script>
+<script src="/static/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/lib/layer/layer.js"></script>
+<script>
+var currentCategoryId = '';
+var isEditMode = false;
+
+// ===== 树操作 =====
+$(document).on('click', '.cat-tree .toggle-icon:not(.empty)', function(e){
+  e.stopPropagation();
+  var $li = $(this).closest('li');
+  var $children = $li.children('.children');
+  $children.slideToggle(150);
+  var icon = $(this);
+  if($children.is(':visible')){
+    icon.text('mdi-chevron-down');
+    icon.removeClass('mdi-chevron-right').addClass('mdi-chevron-down');
+  }else{
+    icon.text('mdi-chevron-right');
+    icon.removeClass('mdi-chevron-down').addClass('mdi-chevron-right');
+  }
+});
+
+$(document).on('click', '.cat-tree .tree-node', function(){
+  var categoryId = $(this).data('id');
+  loadCategoryDetail(categoryId);
+  $('.cat-tree .tree-node').removeClass('active');
+  $(this).addClass('active');
+});
+
+// 全部展开
+function expandAll(){
+  $('#catTree .children').slideDown(150);
+  $('#catTree .toggle-icon').not('.empty').removeClass('mdi-chevron-right').addClass('mdi-chevron-down');
+}
+
+// 全部折叠
+function collapseAll(){
+  $('#catTree .children').slideUp(150);
+  $('#catTree .toggle-icon').not('.empty').removeClass('mdi-chevron-down').addClass('mdi-chevron-right');
+}
+
+// ===== 详情操作 =====
+function loadCategoryDetail(categoryId){
+  currentCategoryId = categoryId;
+  $.get('/cms/category/detail?id=' + categoryId, function(res){
+    if(res.code === 0){
+      var data = res.data;
+      $('#detailPlaceholder').hide();
+      $('#detailForm').show();
+      $('#detailTitle').html('<span class="mdi mdi-information-outline"></span> 栏目详情 - ' + (data.categoryName || ''));
+      $('#detailActions').html(
+        '<button class="btn btn-primary btn-sm" onclick="openAdd(' + categoryId + ')"><span class="mdi mdi-plus"></span> 新增子栏目</button> ' +
+        '<button class="btn btn-danger btn-sm" onclick="doDelete(' + categoryId + ')" style="background:#fa709a;border-color:#fa709a;color:#fff"><span class="mdi mdi-delete"></span> 删除</button>'
+      );
+      fillForm(data);
+      isEditMode = true;
+    }
+  });
+}
+
+function fillForm(data){
+  $('#editCategoryId').val(data.categoryId || '');
+  $('#editParentId').val(data.parentId || 0);
+  $('#categoryName').val(data.categoryName || '');
+  $('#categoryCode').val(data.categoryCode || '');
+  $('#parentName').val(data.parentName || '根栏目');
+  $('#path').val(data.path || '');
+  $('#listTpl').val(data.listTpl || '');
+  $('#articleTpl').val(data.articleTpl || '');
+  $('#seoTitle').val(data.seoTitle || '');
+  $('#seoKeywords').val(data.seoKeywords || '');
+  $('#seoDescription').val(data.seoDescription || '');
+  $('#imageUrl').val(data.imageUrl || '');
+  $('#orderNum').val(data.orderNum || 0);
+  $('#isBlank').val(data.isBlank || '0');
+  $('#status').val(data.status || '0');
+}
+
+function clearForm(){
+  $('#editCategoryId').val('');
+  $('#editParentId').val(0);
+  $('#categoryName').val('');
+  $('#categoryCode').val('');
+  $('#parentName').val('根栏目');
+  $('#path').val('');
+  $('#listTpl').val('');
+  $('#articleTpl').val('');
+  $('#seoTitle').val('');
+  $('#seoKeywords').val('');
+  $('#seoDescription').val('');
+  $('#imageUrl').val('');
+  $('#orderNum').val('0');
+  $('#isBlank').val('0');
+  $('#status').val('0');
+}
+
+function resetForm(){
+  if(currentCategoryId && isEditMode){
+    loadCategoryDetail(currentCategoryId);
+  }else{
+    clearForm();
+  }
+}
+
+function openAdd(parentId){
+  parentId = parentId || 0;
+  currentCategoryId = '';
+  isEditMode = false;
+  $('#detailPlaceholder').hide();
+  $('#detailForm').show();
+  clearForm();
+  $('#editParentId').val(parentId);
+  if(parentId === 0){
+    $('#parentName').val('根栏目');
+    $('#detailTitle').html('<span class="mdi mdi-plus-circle"></span> 新增根栏目');
+  }else{
+    // 尝试获取父栏目名称
+    $.get('/cms/category/detail?id=' + parentId, function(res){
+      if(res.code === 0){
+        $('#parentName').val(res.data.categoryName || '');
+        $('#detailTitle').html('<span class="mdi mdi-plus-circle"></span> 新增子栏目 - 上级: ' + (res.data.categoryName || ''));
+      }
+    });
+  }
+  $('#detailActions').html('');
+}
+
+function doDelete(categoryId){
+  layer.confirm('确定要删除该栏目吗？如果包含子栏目将一并删除。', {title:'提示', btn:['确定','取消']}, function(idx){
+    layer.close(idx);
+    $.post('/cms/category/delete', {categoryId: categoryId}, function(res){
+      if(res.code === 0){
+        layer.msg('删除成功', {icon:1});
+        setTimeout(function(){ window.location.reload(); }, 800);
+      }else{
+        layer.msg(res.msg || '删除失败', {icon:2});
+      }
+    });
+  });
+}
+
+function submitForm(){
+  var url = isEditMode ? '/cms/category/edit' : '/cms/category/add';
+  var data = {
+    categoryId: $('#editCategoryId').val(),
+    parentId: $('#editParentId').val(),
+    categoryName: $('#categoryName').val(),
+    categoryCode: $('#categoryCode').val(),
+    path: $('#path').val(),
+    listTpl: $('#listTpl').val(),
+    articleTpl: $('#articleTpl').val(),
+    seoTitle: $('#seoTitle').val(),
+    seoKeywords: $('#seoKeywords').val(),
+    seoDescription: $('#seoDescription').val(),
+    imageUrl: $('#imageUrl').val(),
+    orderNum: $('#orderNum').val(),
+    isBlank: $('#isBlank').val(),
+    status: $('#status').val()
+  };
+  $.post(url, data, function(res){
+    if(res.code === 0){
+      layer.msg(res.msg || '操作成功', {icon:1});
+      setTimeout(function(){ window.location.reload(); }, 800);
+    }else{
+      layer.msg(res.msg || '操作失败', {icon:2});
+    }
+  });
+}
+</script>
+
+</body>
+</html>
